@@ -1,0 +1,39 @@
+# --- data (DVC-tracked; keep .dvc pointers, not the bytes) ---
+data/raw/*
+data/interim/*
+data/processed/*
+!data/**/.gitkeep
+*.csv
+!docs/**/*.csv          # allow small reference CSVs in docs (e.g. feature log)
+
+# --- MLflow ---
+mlruns/
+mlflow.db
+*.mlflow
+
+# --- models / artifacts ---
+*.pkl
+*.joblib
+*.onnx
+artifacts/
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- secrets / config ---
+.env
+kaggle.json
+*.key
+
+# --- os / editor ---
+.DS_Store
+.idea/
+.vscode/

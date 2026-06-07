@@ -1,0 +1,33 @@
+# --- core data / modeling ---
+pandas>=2.1
+numpy>=1.26
+scikit-learn>=1.4
+xgboost>=2.0
+# lightgbm>=4.1            # optional alternative to xgboost
+
+# --- experiment tracking & data versioning ---
+mlflow>=2.12
+dvc>=3.50
+
+# --- explainability & fairness ---
+shap>=0.45
+fairlearn>=0.10
+
+# --- serving ---
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+
+# --- observability ---
+prometheus-fastapi-instrumentator>=7.0
+evidently>=0.4
+
+# --- profiling / EDA (Phase 1) ---
+ydata-profiling>=4.7
+
+# --- data source ---
+kaggle>=1.6               # to pull diabetic_data.csv (keeps patient_nbr)
+
+# --- testing ---
+pytest>=8.0
+httpx>=0.27               # for FastAPI test client
