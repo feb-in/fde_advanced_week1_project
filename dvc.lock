@@ -1,0 +1,19 @@
+schema: '2.0'
+stages:
+  clean:
+    cmd: uv run python src/data/clean.py --raw data/raw/diabetic_data.csv --out 
+      data/prepared/diabetes_clean.parquet
+    deps:
+    - path: data/raw/diabetic_data.csv
+      hash: md5
+      md5: 502f0cc004e4cf71536ec2e61596e42f
+      size: 19159383
+    - path: src/data/clean.py
+      hash: md5
+      md5: 957a57258be4ba14cde238566c57b677
+      size: 8835
+    outs:
+    - path: data/prepared/diabetes_clean.parquet
+      hash: md5
+      md5: 449e08e1c3be28cd3da1c134e689a831
+      size: 2003720

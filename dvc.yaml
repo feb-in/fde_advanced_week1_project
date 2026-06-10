@@ -1,0 +1,11 @@
+# DVC pipeline. `dvc repro` runs any stage whose deps changed and re-tracks its
+# outs by hash (recorded in dvc.lock). The raw CSV is itself DVC-tracked (dvc add),
+# so this stage's dependency chain is fully versioned end to end.
+stages:
+  clean:
+    cmd: uv run python src/data/clean.py --raw data/raw/diabetic_data.csv --out data/prepared/diabetes_clean.parquet
+    deps:
+      - src/data/clean.py
+      - data/raw/diabetic_data.csv
+    outs:
+      - data/prepared/diabetes_clean.parquet
