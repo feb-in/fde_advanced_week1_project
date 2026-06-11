@@ -9,3 +9,10 @@ stages:
       - data/raw/diabetic_data.csv
     outs:
       - data/prepared/diabetes_clean.parquet
+  featurize:
+    cmd: uv run python src/features/build_features.py --in data/prepared/diabetes_clean.parquet --out data/featurized/diabetes_features.parquet
+    deps:
+      - src/features/build_features.py
+      - data/prepared/diabetes_clean.parquet
+    outs:
+      - data/featurized/diabetes_features.parquet

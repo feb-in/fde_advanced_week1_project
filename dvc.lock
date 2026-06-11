@@ -17,3 +17,21 @@ stages:
       hash: md5
       md5: 449e08e1c3be28cd3da1c134e689a831
       size: 2003720
+  featurize:
+    cmd: uv run python src/features/build_features.py --in 
+      data/prepared/diabetes_clean.parquet --out 
+      data/featurized/diabetes_features.parquet
+    deps:
+    - path: data/prepared/diabetes_clean.parquet
+      hash: md5
+      md5: 449e08e1c3be28cd3da1c134e689a831
+      size: 2003720
+    - path: src/features/build_features.py
+      hash: md5
+      md5: 17f8320b5bd0055b38e9e02135ba5528
+      size: 13116
+    outs:
+    - path: data/featurized/diabetes_features.parquet
+      hash: md5
+      md5: 132afdcbc049063c3a327b3ee62c7dcc
+      size: 1993528
