@@ -192,3 +192,18 @@ plus top SHAP factors, view live metrics in Grafana, generate an Evidently drift
 report, read a fairness audit and a model card, and find an audit log entry for
 every scored request — plus a written rollback and retrain-trigger plan. See
 `docs/GOALS.md` for per-stage detail.
+
+---
+
+## 6. Standing instruction — end every response with a SYNC block
+
+At the END of every response, append a section titled `── SYNC FOR CHAT ──`
+written FOR a separate ML architect who sees ONLY this block, not the full output.
+Concise and scannable — no narration. State:
+- **DONE:** what changed this turn (files created/edited/deleted, one line each)
+- **NUMBERS:** sanity figures (row/col counts, rates, metric values) — bullets
+- **DECISIONS:** any choice made that wasn't explicitly specified (or "none")
+- **FLAGS:** anything surprising, off, or needing an architecture decision (or "none")
+- **NEXT:** the single next step, phrased as a question to confirm
+
+Max ~12 lines. This block is the bridge between Claude Code and chat.
