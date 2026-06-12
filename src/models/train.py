@@ -122,6 +122,27 @@ def as_catboost_frame(X, cat_cols):
     return X
 
 
+def prepare_data(features_path: str):
+    """Load → carve the held-out test set → drop train-constant columns.
+
+    This is the SINGLE definition of the split. Both train.py (baseline) and
+    tune.py (hyperparameter search) call it, so the 20% held-out test set and the
+    fold-able train portion are byte-identical across gates: same SEED, same
+    TEST_SIZE, same stratification, same zero-variance drop. The test set returned
+    here is touched exactly once, at final evaluation — never inside CV/search.
+
+    Returns: X_train, X_test, y_train, y_test, cat_cols, num_cols, dropped.
+    """
+    X, y, cat_cols, num_cols = load_xy(features_path)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=TEST_SIZE, stratify=y, random_state=SEED
+    )
+    X_train, X_test, cat_cols, num_cols, dropped = drop_zero_variance(
+        X_train, X_test, cat_cols, num_cols
+    )
+    return X_train, X_test, y_train, y_test, cat_cols, num_cols, dropped
+
+
 # ---------------------------------------------------------------------------
 # Train / evaluate one model, logging a single MLflow run
 # ---------------------------------------------------------------------------
@@ -215,17 +236,9 @@ def main(features_path: str, experiment: str) -> None:
     mlflow.set_experiment(experiment)
     print(f"[mlflow] tracking_uri={tracking_uri}  experiment={experiment!r}")
 
-    X, y, cat_cols, num_cols = load_xy(features_path)
-    print(f"[data] {X.shape[0]:,} rows x {X.shape[1]} feature cols  "
-          f"(prevalence={y.mean():.4f}); {len(cat_cols)} categorical, {len(num_cols)} numeric")
-
-    # Held-out test set: carved ONCE, before any CV/fitting, stratified on target.
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=TEST_SIZE, stratify=y, random_state=SEED
-    )
-    X_train, X_test, cat_cols, num_cols, dropped = drop_zero_variance(
-        X_train, X_test, cat_cols, num_cols
-    )
+    X_train, X_test, y_train, y_test, cat_cols, num_cols, dropped = prepare_data(features_path)
+    print(f"[data] prevalence={y_train.mean():.4f}; {len(cat_cols)} categorical, "
+          f"{len(num_cols)} numeric")
     print(f"[split] train={len(X_train):,}  test={len(X_test):,}  "
           f"dropped zero-variance: {dropped or 'none'}")
 
