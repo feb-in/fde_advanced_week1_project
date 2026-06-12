@@ -1,0 +1,16 @@
+# Streamlit theme for the EDA dashboard (EDA/dashboard.py).
+# Kept minimal and light so charts (blue = count, red = readmit-rate) read clearly.
+[theme]
+base = "light"
+primaryColor = "#2563eb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f1f5f9"
+textColor = "#0f172a"
+font = "sans serif"
+
+[server]
+headless = true
+runOnSave = true
+
+[browser]
+gatherUsageStats = false

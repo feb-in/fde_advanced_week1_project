@@ -138,7 +138,7 @@ real file that belongs in it is written.
 ├── data/raw/    # diabetic_data.csv (DVC-tracked, gitignored)
 ├── data/prepared/ # diabetes_clean.parquet (DVC-tracked, written by clean stage)
 ├── dataset/     # original Kaggle download (CSV + data-dictionary PDF)
-└── ETA/         # exploratory data analysis: Streamlit dashboard + analysis engine
+└── EDA/         # exploratory data analysis: Streamlit dashboard + analysis engine
 ```
 
 **Where new code lands as you build it (create each on first use):**
@@ -158,7 +158,7 @@ notebooks/       exploration only — never the source of truth
 ```
 
 > **All real logic lives in importable, re-runnable scripts** under `src/` or
-> `ETA/` — never hidden in a notebook.
+> `EDA/` — never hidden in a notebook.
 
 ---
 
