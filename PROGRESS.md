@@ -181,3 +181,28 @@ Two things worth saying plainly:
 
 **Up next:** calibrate the model's probabilities, choose the risk threshold that
 fits the cost trade-off, then register it for serving.
+
+---
+
+## Step — Tuning both models, and choosing which to trust
+I gave both models a proper tune-up (an automated search over their settings,
+optimizing for AUPRC — the honest metric when only ~9% of patients are readmitted),
+and tuned them side by side on the exact same train/test split so the comparison
+was fair.
+
+The result was clarifying, even though it went against my initial preference. I'd
+hoped the simple logistic regression could be my headline model, because it explains
+itself. But tuning showed it had already hit its ceiling — it couldn't get better,
+because a straight-line model has squeezed out all the signal it can from this data.
+CatBoost pulled further ahead: at the same precision it catches about 2.6× as many
+of the patients who actually return.
+
+So I'm leading with CatBoost — but I'm not giving up explainability to do it. CatBoost
+supports SHAP, which explains every individual prediction ("this patient scored high
+because of prior inpatient visits, not being discharged home..."). And I'm keeping the
+logistic regression alongside it as a transparent cross-check: when the simple model's
+reasoning agrees with CatBoost's explanations, that's strong evidence the model is
+picking up real clinical signal, not noise.
+
+**Up next:** make the model's probabilities trustworthy (calibration), choose the
+risk cutoff that fits the cost of a missed readmission, and register the model.
