@@ -1,0 +1,3610 @@
+{
+  "schema": {
+    "n_rows": 101766,
+    "n_columns_raw": 50,
+    "base_rate": 0.1116
+  },
+  "target": {
+    "n_rows": 101766,
+    "raw_distribution": {
+      "NO": 54864,
+      ">30": 35545,
+      "<30": 11357
+    },
+    "binary_positive_label": "<30",
+    "binary_positives": 11357,
+    "base_rate": 0.1116,
+    "majority_baseline_accuracy": 0.8884
+  },
+  "grouping": {
+    "n_rows": 101766,
+    "n_unique_patients": 71518,
+    "n_patients_multi_encounter": 16773,
+    "max_encounters_per_patient": 40,
+    "pct_rows_from_repeat_patients": 46.21,
+    "leakage_note": "A random row split would put the SAME patient in train and test (hard rule 2). Split with GroupShuffleSplit on patient_nbr."
+  },
+  "discharge_filter": {
+    "n_expired_rows": 1652,
+    "n_hospice_rows": 771,
+    "n_drop_rows": 2423,
+    "pct_drop": 2.381,
+    "rows_after_filter": 99343,
+    "breakdown": [
+      {
+        "code": 11,
+        "label": "Expired",
+        "kind": "expired",
+        "count": 1642,
+        "pct": 1.614
+      },
+      {
+        "code": 19,
+        "label": "Expired at home. Medicaid only, hospice.",
+        "kind": "expired",
+        "count": 8,
+        "pct": 0.008
+      },
+      {
+        "code": 20,
+        "label": "Expired in a medical facility. Medicaid only, hospice.",
+        "kind": "expired",
+        "count": 2,
+        "pct": 0.002
+      },
+      {
+        "code": 21,
+        "label": "Expired, place unknown. Medicaid only, hospice.",
+        "kind": "expired",
+        "count": 0,
+        "pct": 0.0
+      },
+      {
+        "code": 13,
+        "label": "Hospice / home",
+        "kind": "hospice",
+        "count": 399,
+        "pct": 0.392
+      },
+      {
+        "code": 14,
+        "label": "Hospice / medical facility",
+        "kind": "hospice",
+        "count": 372,
+        "pct": 0.366
+      }
+    ],
+    "rule": "Hard rule 5: expired/hospice patients cannot be readmitted \u2014 drop them so the target is well-defined and the model is not trained on structurally-impossible negatives."
+  },
+  "co_missing": {
+    "columns": [
+      "race",
+      "weight",
+      "payer_code",
+      "medical_specialty",
+      "diag_3",
+      "max_glu_serum",
+      "A1Cresult"
+    ],
+    "missing_pct": {
+      "race": 2.234,
+      "weight": 96.858,
+      "payer_code": 39.557,
+      "medical_specialty": 49.082,
+      "diag_3": 1.398,
+      "max_glu_serum": 94.747,
+      "A1Cresult": 83.277
+    },
+    "matrix": [
+      [
+        1.0,
+        -0.025,
+        -0.048,
+        0.009,
+        0.024,
+        0.019,
+        -0.007
+      ],
+      [
+        -0.025,
+        1.0,
+        0.044,
+        0.002,
+        0.01,
+        -0.042,
+        -0.028
+      ],
+      [
+        -0.048,
+        0.044,
+        1.0,
+        -0.137,
+        0.038,
+        -0.119,
+        -0.009
+      ],
+      [
+        0.009,
+        0.002,
+        -0.137,
+        1.0,
+        -0.045,
+        0.018,
+        0.018
+      ],
+      [
+        0.024,
+        0.01,
+        0.038,
+        -0.045,
+        1.0,
+        -0.003,
+        -0.037
+      ],
+      [
+        0.019,
+        -0.042,
+        -0.119,
+        0.018,
+        -0.003,
+        1.0,
+        -0.07
+      ],
+      [
+        -0.007,
+        -0.028,
+        -0.009,
+        0.018,
+        -0.037,
+        -0.07,
+        1.0
+      ]
+    ]
+  },
+  "columns": {
+    "encounter_id": {
+      "name": "encounter_id",
+      "family": "Identifier",
+      "dtype": "int64",
+      "inferred_role": "identifier",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 101766,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": null,
+      "notes": [
+        "Row/patient key \u2014 not a feature. patient_nbr drives the GROUP split."
+      ]
+    },
+    "patient_nbr": {
+      "name": "patient_nbr",
+      "family": "Identifier",
+      "dtype": "int64",
+      "inferred_role": "identifier",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 71518,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": null,
+      "notes": [
+        "Row/patient key \u2014 not a feature. patient_nbr drives the GROUP split."
+      ]
+    },
+    "race": {
+      "name": "race",
+      "family": "Demographic",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 2273,
+      "pct_missing": 2.234,
+      "n_unique": 5,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "Caucasian",
+          "count": 76099,
+          "pct": 74.778,
+          "positives": 8592,
+          "positive_rate": 0.11291
+        },
+        {
+          "label": "AfricanAmerican",
+          "count": 19210,
+          "pct": 18.877,
+          "positives": 2155,
+          "positive_rate": 0.11218
+        },
+        {
+          "label": "Hispanic",
+          "count": 2037,
+          "pct": 2.002,
+          "positives": 212,
+          "positive_rate": 0.10407
+        },
+        {
+          "label": "Other",
+          "count": 1506,
+          "pct": 1.48,
+          "positives": 145,
+          "positive_rate": 0.09628
+        },
+        {
+          "label": "Asian",
+          "count": 641,
+          "pct": 0.63,
+          "positives": 65,
+          "positive_rate": 0.1014
+        }
+      ],
+      "n_levels_shown": 5,
+      "n_levels_total": 5,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.012,
+      "notes": []
+    },
+    "gender": {
+      "name": "gender",
+      "family": "Demographic",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 3,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "Female",
+          "count": 54708,
+          "pct": 53.759,
+          "positives": 6152,
+          "positive_rate": 0.11245
+        },
+        {
+          "label": "Male",
+          "count": 47055,
+          "pct": 46.238,
+          "positives": 5205,
+          "positive_rate": 0.11062
+        },
+        {
+          "label": "Unknown/Invalid",
+          "count": 3,
+          "pct": 0.003,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 3,
+      "n_levels_total": 3,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.008,
+      "notes": []
+    },
+    "age": {
+      "name": "age",
+      "family": "Demographic",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 10,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "[70-80)",
+          "count": 26068,
+          "pct": 25.616,
+          "positives": 3069,
+          "positive_rate": 0.11773
+        },
+        {
+          "label": "[60-70)",
+          "count": 22483,
+          "pct": 22.093,
+          "positives": 2502,
+          "positive_rate": 0.11128
+        },
+        {
+          "label": "[50-60)",
+          "count": 17256,
+          "pct": 16.957,
+          "positives": 1668,
+          "positive_rate": 0.09666
+        },
+        {
+          "label": "[80-90)",
+          "count": 17197,
+          "pct": 16.899,
+          "positives": 2078,
+          "positive_rate": 0.12084
+        },
+        {
+          "label": "[40-50)",
+          "count": 9685,
+          "pct": 9.517,
+          "positives": 1027,
+          "positive_rate": 0.10604
+        },
+        {
+          "label": "[30-40)",
+          "count": 3775,
+          "pct": 3.709,
+          "positives": 424,
+          "positive_rate": 0.11232
+        },
+        {
+          "label": "[90-100)",
+          "count": 2793,
+          "pct": 2.745,
+          "positives": 310,
+          "positive_rate": 0.11099
+        },
+        {
+          "label": "[20-30)",
+          "count": 1657,
+          "pct": 1.628,
+          "positives": 236,
+          "positive_rate": 0.14243
+        },
+        {
+          "label": "[10-20)",
+          "count": 691,
+          "pct": 0.679,
+          "positives": 40,
+          "positive_rate": 0.05789
+        },
+        {
+          "label": "[0-10)",
+          "count": 161,
+          "pct": 0.158,
+          "positives": 3,
+          "positive_rate": 0.01863
+        }
+      ],
+      "n_levels_shown": 10,
+      "n_levels_total": 10,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.276,
+      "notes": []
+    },
+    "weight": {
+      "name": "weight",
+      "family": "Demographic",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 98569,
+      "pct_missing": 96.858,
+      "n_unique": 9,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "[75-100)",
+          "count": 1336,
+          "pct": 1.313,
+          "positives": 153,
+          "positive_rate": 0.11452
+        },
+        {
+          "label": "[50-75)",
+          "count": 897,
+          "pct": 0.881,
+          "positives": 105,
+          "positive_rate": 0.11706
+        },
+        {
+          "label": "[100-125)",
+          "count": 625,
+          "pct": 0.614,
+          "positives": 67,
+          "positive_rate": 0.1072
+        },
+        {
+          "label": "[125-150)",
+          "count": 145,
+          "pct": 0.142,
+          "positives": 12,
+          "positive_rate": 0.08276
+        },
+        {
+          "label": "[25-50)",
+          "count": 97,
+          "pct": 0.095,
+          "positives": 8,
+          "positive_rate": 0.08247
+        },
+        {
+          "label": "[0-25)",
+          "count": 48,
+          "pct": 0.047,
+          "positives": 8,
+          "positive_rate": 0.16667
+        },
+        {
+          "label": "[150-175)",
+          "count": 35,
+          "pct": 0.034,
+          "positives": 3,
+          "positive_rate": 0.08571
+        },
+        {
+          "label": "[175-200)",
+          "count": 11,
+          "pct": 0.011,
+          "positives": 1,
+          "positive_rate": 0.09091
+        },
+        {
+          "label": ">200",
+          "count": 3,
+          "pct": 0.003,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 9,
+      "n_levels_total": 9,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.493,
+      "notes": []
+    },
+    "admission_type_id": {
+      "name": "admission_type_id",
+      "family": "Administrative ID (coded)",
+      "dtype": "int64",
+      "inferred_role": "coded_id",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 8,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "Emergency",
+          "count": 53990,
+          "pct": 53.053,
+          "positives": 6221,
+          "positive_rate": 0.11523
+        },
+        {
+          "label": "Elective",
+          "count": 18869,
+          "pct": 18.542,
+          "positives": 1961,
+          "positive_rate": 0.10393
+        },
+        {
+          "label": "Urgent",
+          "count": 18480,
+          "pct": 18.159,
+          "positives": 2066,
+          "positive_rate": 0.1118
+        },
+        {
+          "label": "NULL",
+          "count": 5291,
+          "pct": 5.199,
+          "positives": 586,
+          "positive_rate": 0.11075
+        },
+        {
+          "label": "Not Available",
+          "count": 4785,
+          "pct": 4.702,
+          "positives": 495,
+          "positive_rate": 0.10345
+        },
+        {
+          "label": "Not Mapped",
+          "count": 320,
+          "pct": 0.314,
+          "positives": 27,
+          "positive_rate": 0.08438
+        },
+        {
+          "label": "Trauma Center",
+          "count": 21,
+          "pct": 0.021,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Newborn",
+          "count": 10,
+          "pct": 0.01,
+          "positives": 1,
+          "positive_rate": 0.1
+        }
+      ],
+      "n_levels_shown": 8,
+      "n_levels_total": 8,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.033,
+      "notes": []
+    },
+    "discharge_disposition_id": {
+      "name": "discharge_disposition_id",
+      "family": "Administrative ID (coded)",
+      "dtype": "int64",
+      "inferred_role": "coded_id",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 26,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "Discharged to home",
+          "count": 60234,
+          "pct": 59.189,
+          "positives": 5602,
+          "positive_rate": 0.093
+        },
+        {
+          "label": "Discharged/transferred to SNF",
+          "count": 13954,
+          "pct": 13.712,
+          "positives": 2046,
+          "positive_rate": 0.14662
+        },
+        {
+          "label": "Discharged/transferred to home with home health service",
+          "count": 12902,
+          "pct": 12.678,
+          "positives": 1638,
+          "positive_rate": 0.12696
+        },
+        {
+          "label": "NULL",
+          "count": 3691,
+          "pct": 3.627,
+          "positives": 459,
+          "positive_rate": 0.12436
+        },
+        {
+          "label": "Discharged/transferred to another short term hospital",
+          "count": 2128,
+          "pct": 2.091,
+          "positives": 342,
+          "positive_rate": 0.16071
+        },
+        {
+          "label": "Discharged/transferred to another rehab facility (incl. rehab units)",
+          "count": 1993,
+          "pct": 1.958,
+          "positives": 552,
+          "positive_rate": 0.27697
+        },
+        {
+          "label": "Expired",
+          "count": 1642,
+          "pct": 1.614,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Discharged/transferred to another inpatient care institution",
+          "count": 1184,
+          "pct": 1.163,
+          "positives": 247,
+          "positive_rate": 0.20861
+        },
+        {
+          "label": "Not Mapped",
+          "count": 989,
+          "pct": 0.972,
+          "positives": 92,
+          "positive_rate": 0.09302
+        },
+        {
+          "label": "Discharged/transferred to ICF",
+          "count": 815,
+          "pct": 0.801,
+          "positives": 104,
+          "positive_rate": 0.12761
+        },
+        {
+          "label": "Left AMA",
+          "count": 623,
+          "pct": 0.612,
+          "positives": 90,
+          "positive_rate": 0.14446
+        },
+        {
+          "label": "Discharged/transferred to a long term care hospital",
+          "count": 412,
+          "pct": 0.405,
+          "positives": 30,
+          "positive_rate": 0.07282
+        },
+        {
+          "label": "Hospice / home",
+          "count": 399,
+          "pct": 0.392,
+          "positives": 19,
+          "positive_rate": 0.04762
+        },
+        {
+          "label": "Hospice / medical facility",
+          "count": 372,
+          "pct": 0.366,
+          "positives": 24,
+          "positive_rate": 0.06452
+        },
+        {
+          "label": "Discharged/transferred to a psychiatric hospital / unit",
+          "count": 139,
+          "pct": 0.137,
+          "positives": 51,
+          "positive_rate": 0.36691
+        },
+        {
+          "label": "Discharged/transferred to home under care of Home IV provider",
+          "count": 108,
+          "pct": 0.106,
+          "positives": 15,
+          "positive_rate": 0.13889
+        },
+        {
+          "label": "Discharged/transferred within this institution to Medicare swing bed",
+          "count": 63,
+          "pct": 0.062,
+          "positives": 28,
+          "positive_rate": 0.44444
+        },
+        {
+          "label": "Discharged/transferred to a nursing facility (Medicaid, not Medicare)",
+          "count": 48,
+          "pct": 0.047,
+          "positives": 7,
+          "positive_rate": 0.14583
+        },
+        {
+          "label": "Admitted as an inpatient to this hospital",
+          "count": 21,
+          "pct": 0.021,
+          "positives": 9,
+          "positive_rate": 0.42857
+        },
+        {
+          "label": "Discharged/transferred to this institution for outpatient services",
+          "count": 14,
+          "pct": 0.014,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Discharged/transferred to another institution for outpatient services",
+          "count": 11,
+          "pct": 0.011,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Expired at home. Medicaid only, hospice.",
+          "count": 8,
+          "pct": 0.008,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Neonate discharged to another hospital for neonatal aftercare",
+          "count": 6,
+          "pct": 0.006,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Discharged/transferred to a federal health care facility",
+          "count": 5,
+          "pct": 0.005,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Still patient / expected to return for outpatient services",
+          "count": 3,
+          "pct": 0.003,
+          "positives": 2,
+          "positive_rate": 0.66667
+        },
+        {
+          "label": "Expired in a medical facility. Medicaid only, hospice.",
+          "count": 2,
+          "pct": 0.002,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 26,
+      "n_levels_total": 26,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 3.982,
+      "notes": []
+    },
+    "admission_source_id": {
+      "name": "admission_source_id",
+      "family": "Administrative ID (coded)",
+      "dtype": "int64",
+      "inferred_role": "coded_id",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 17,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "Emergency Room",
+          "count": 57494,
+          "pct": 56.496,
+          "positives": 6720,
+          "positive_rate": 0.11688
+        },
+        {
+          "label": "Physician Referral",
+          "count": 29565,
+          "pct": 29.052,
+          "positives": 3130,
+          "positive_rate": 0.10587
+        },
+        {
+          "label": "NULL",
+          "count": 6781,
+          "pct": 6.663,
+          "positives": 706,
+          "positive_rate": 0.10411
+        },
+        {
+          "label": "Transfer from a hospital",
+          "count": 3187,
+          "pct": 3.132,
+          "positives": 309,
+          "positive_rate": 0.09696
+        },
+        {
+          "label": "Transfer from another health care facility",
+          "count": 2264,
+          "pct": 2.225,
+          "positives": 212,
+          "positive_rate": 0.09364
+        },
+        {
+          "label": "Clinic Referral",
+          "count": 1104,
+          "pct": 1.085,
+          "positives": 111,
+          "positive_rate": 0.10054
+        },
+        {
+          "label": "Transfer from a Skilled Nursing Facility (SNF)",
+          "count": 855,
+          "pct": 0.84,
+          "positives": 101,
+          "positive_rate": 0.11813
+        },
+        {
+          "label": "HMO Referral",
+          "count": 187,
+          "pct": 0.184,
+          "positives": 29,
+          "positive_rate": 0.15508
+        },
+        {
+          "label": "Not Mapped",
+          "count": 161,
+          "pct": 0.158,
+          "positives": 22,
+          "positive_rate": 0.13665
+        },
+        {
+          "label": "Not Available",
+          "count": 125,
+          "pct": 0.123,
+          "positives": 13,
+          "positive_rate": 0.104
+        },
+        {
+          "label": "Court/Law Enforcement",
+          "count": 16,
+          "pct": 0.016,
+          "positives": 2,
+          "positive_rate": 0.125
+        },
+        {
+          "label": "Transfer from hospital inpt/same fac, separate claim",
+          "count": 12,
+          "pct": 0.012,
+          "positives": 2,
+          "positive_rate": 0.16667
+        },
+        {
+          "label": "Transfer from critical access hospital",
+          "count": 8,
+          "pct": 0.008,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Extramural Birth",
+          "count": 2,
+          "pct": 0.002,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Normal Delivery",
+          "count": 2,
+          "pct": 0.002,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Transfer from Ambulatory Surgery Center",
+          "count": 2,
+          "pct": 0.002,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Sick Baby",
+          "count": 1,
+          "pct": 0.001,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 17,
+      "n_levels_total": 17,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.39,
+      "notes": []
+    },
+    "time_in_hospital": {
+      "name": "time_in_hospital",
+      "family": "Utilization (numeric)",
+      "dtype": "int64",
+      "inferred_role": "numeric",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 14,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": {
+        "min": 1.0,
+        "p01": 1.0,
+        "p05": 1.0,
+        "p25": 2.0,
+        "median": 4.0,
+        "mean": 4.395986871843248,
+        "p75": 6.0,
+        "p95": 11.0,
+        "p99": 14.0,
+        "max": 14.0,
+        "std": 2.985107767471267,
+        "skew": 1.1339987193338785,
+        "zeros_pct": 0.0
+      },
+      "numeric_bins": [
+        {
+          "bin": "(0.999, 2.0]",
+          "left": 0.999,
+          "right": 2.0,
+          "count": 31432,
+          "positive_rate": 0.09144
+        },
+        {
+          "bin": "(2.0, 3.0]",
+          "left": 2.0,
+          "right": 3.0,
+          "count": 17756,
+          "positive_rate": 0.10667
+        },
+        {
+          "bin": "(3.0, 4.0]",
+          "left": 3.0,
+          "right": 4.0,
+          "count": 13924,
+          "positive_rate": 0.11807
+        },
+        {
+          "bin": "(4.0, 5.0]",
+          "left": 4.0,
+          "right": 5.0,
+          "count": 9966,
+          "positive_rate": 0.12031
+        },
+        {
+          "bin": "(5.0, 7.0]",
+          "left": 5.0,
+          "right": 7.0,
+          "count": 13398,
+          "positive_rate": 0.12696
+        },
+        {
+          "bin": "(7.0, 9.0]",
+          "left": 7.0,
+          "right": 9.0,
+          "count": 7393,
+          "positive_rate": 0.14027
+        },
+        {
+          "bin": "(9.0, 14.0]",
+          "left": 9.0,
+          "right": 14.0,
+          "count": 7897,
+          "positive_rate": 0.12764
+        }
+      ],
+      "target_lift": 1.257,
+      "notes": []
+    },
+    "payer_code": {
+      "name": "payer_code",
+      "family": "Administrative text",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 40256,
+      "pct_missing": 39.557,
+      "n_unique": 17,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "MC",
+          "count": 32439,
+          "pct": 31.876,
+          "positives": 3810,
+          "positive_rate": 0.11745
+        },
+        {
+          "label": "HM",
+          "count": 6274,
+          "pct": 6.165,
+          "positives": 644,
+          "positive_rate": 0.10265
+        },
+        {
+          "label": "SP",
+          "count": 5007,
+          "pct": 4.92,
+          "positives": 510,
+          "positive_rate": 0.10186
+        },
+        {
+          "label": "BC",
+          "count": 4655,
+          "pct": 4.574,
+          "positives": 426,
+          "positive_rate": 0.09151
+        },
+        {
+          "label": "MD",
+          "count": 3532,
+          "pct": 3.471,
+          "positives": 416,
+          "positive_rate": 0.11778
+        },
+        {
+          "label": "CP",
+          "count": 2533,
+          "pct": 2.489,
+          "positives": 214,
+          "positive_rate": 0.08448
+        },
+        {
+          "label": "UN",
+          "count": 2448,
+          "pct": 2.406,
+          "positives": 227,
+          "positive_rate": 0.09273
+        },
+        {
+          "label": "CM",
+          "count": 1937,
+          "pct": 1.903,
+          "positives": 198,
+          "positive_rate": 0.10222
+        },
+        {
+          "label": "OG",
+          "count": 1033,
+          "pct": 1.015,
+          "positives": 136,
+          "positive_rate": 0.13166
+        },
+        {
+          "label": "PO",
+          "count": 592,
+          "pct": 0.582,
+          "positives": 44,
+          "positive_rate": 0.07432
+        },
+        {
+          "label": "DM",
+          "count": 549,
+          "pct": 0.539,
+          "positives": 64,
+          "positive_rate": 0.11658
+        },
+        {
+          "label": "CH",
+          "count": 146,
+          "pct": 0.143,
+          "positives": 13,
+          "positive_rate": 0.08904
+        },
+        {
+          "label": "WC",
+          "count": 135,
+          "pct": 0.133,
+          "positives": 5,
+          "positive_rate": 0.03704
+        },
+        {
+          "label": "OT",
+          "count": 95,
+          "pct": 0.093,
+          "positives": 7,
+          "positive_rate": 0.07368
+        },
+        {
+          "label": "MP",
+          "count": 79,
+          "pct": 0.078,
+          "positives": 9,
+          "positive_rate": 0.11392
+        },
+        {
+          "label": "SI",
+          "count": 55,
+          "pct": 0.054,
+          "positives": 7,
+          "positive_rate": 0.12727
+        },
+        {
+          "label": "FR",
+          "count": 1,
+          "pct": 0.001,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 17,
+      "n_levels_total": 17,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.18,
+      "notes": []
+    },
+    "medical_specialty": {
+      "name": "medical_specialty",
+      "family": "Administrative text",
+      "dtype": "object",
+      "inferred_role": "high_card_cat",
+      "n": 101766,
+      "n_missing": 49949,
+      "pct_missing": 49.082,
+      "n_unique": 72,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "InternalMedicine",
+          "count": 14635,
+          "pct": 14.381,
+          "positives": 1646,
+          "positive_rate": 0.11247
+        },
+        {
+          "label": "Emergency/Trauma",
+          "count": 7565,
+          "pct": 7.434,
+          "positives": 846,
+          "positive_rate": 0.11183
+        },
+        {
+          "label": "Family/GeneralPractice",
+          "count": 7440,
+          "pct": 7.311,
+          "positives": 883,
+          "positive_rate": 0.11868
+        },
+        {
+          "label": "Cardiology",
+          "count": 5352,
+          "pct": 5.259,
+          "positives": 425,
+          "positive_rate": 0.07941
+        },
+        {
+          "label": "Surgery-General",
+          "count": 3099,
+          "pct": 3.045,
+          "positives": 342,
+          "positive_rate": 0.11036
+        },
+        {
+          "label": "Nephrology",
+          "count": 1613,
+          "pct": 1.585,
+          "positives": 248,
+          "positive_rate": 0.15375
+        },
+        {
+          "label": "Orthopedics",
+          "count": 1400,
+          "pct": 1.376,
+          "positives": 151,
+          "positive_rate": 0.10786
+        },
+        {
+          "label": "Orthopedics-Reconstructive",
+          "count": 1233,
+          "pct": 1.212,
+          "positives": 92,
+          "positive_rate": 0.07461
+        },
+        {
+          "label": "Radiologist",
+          "count": 1140,
+          "pct": 1.12,
+          "positives": 103,
+          "positive_rate": 0.09035
+        },
+        {
+          "label": "Pulmonology",
+          "count": 871,
+          "pct": 0.856,
+          "positives": 96,
+          "positive_rate": 0.11022
+        },
+        {
+          "label": "Psychiatry",
+          "count": 854,
+          "pct": 0.839,
+          "positives": 104,
+          "positive_rate": 0.12178
+        },
+        {
+          "label": "Urology",
+          "count": 685,
+          "pct": 0.673,
+          "positives": 68,
+          "positive_rate": 0.09927
+        },
+        {
+          "label": "ObstetricsandGynecology",
+          "count": 671,
+          "pct": 0.659,
+          "positives": 32,
+          "positive_rate": 0.04769
+        },
+        {
+          "label": "Surgery-Cardiovascular/Thoracic",
+          "count": 652,
+          "pct": 0.641,
+          "positives": 43,
+          "positive_rate": 0.06595
+        },
+        {
+          "label": "Gastroenterology",
+          "count": 564,
+          "pct": 0.554,
+          "positives": 62,
+          "positive_rate": 0.10993
+        },
+        {
+          "label": "Surgery-Vascular",
+          "count": 533,
+          "pct": 0.524,
+          "positives": 74,
+          "positive_rate": 0.13884
+        },
+        {
+          "label": "Surgery-Neuro",
+          "count": 468,
+          "pct": 0.46,
+          "positives": 32,
+          "positive_rate": 0.06838
+        },
+        {
+          "label": "PhysicalMedicineandRehabilitation",
+          "count": 391,
+          "pct": 0.384,
+          "positives": 60,
+          "positive_rate": 0.15345
+        },
+        {
+          "label": "Oncology",
+          "count": 348,
+          "pct": 0.342,
+          "positives": 66,
+          "positive_rate": 0.18966
+        },
+        {
+          "label": "Pediatrics",
+          "count": 254,
+          "pct": 0.25,
+          "positives": 16,
+          "positive_rate": 0.06299
+        },
+        {
+          "label": "Hematology/Oncology",
+          "count": 207,
+          "pct": 0.203,
+          "positives": 40,
+          "positive_rate": 0.19324
+        },
+        {
+          "label": "Neurology",
+          "count": 203,
+          "pct": 0.199,
+          "positives": 12,
+          "positive_rate": 0.05911
+        },
+        {
+          "label": "Pediatrics-Endocrinology",
+          "count": 159,
+          "pct": 0.156,
+          "positives": 1,
+          "positive_rate": 0.00629
+        },
+        {
+          "label": "Otolaryngology",
+          "count": 125,
+          "pct": 0.123,
+          "positives": 2,
+          "positive_rate": 0.016
+        },
+        {
+          "label": "Endocrinology",
+          "count": 120,
+          "pct": 0.118,
+          "positives": 6,
+          "positive_rate": 0.05
+        },
+        {
+          "label": "Surgery-Thoracic",
+          "count": 109,
+          "pct": 0.107,
+          "positives": 11,
+          "positive_rate": 0.10092
+        },
+        {
+          "label": "Psychology",
+          "count": 101,
+          "pct": 0.099,
+          "positives": 8,
+          "positive_rate": 0.07921
+        },
+        {
+          "label": "Podiatry",
+          "count": 100,
+          "pct": 0.098,
+          "positives": 10,
+          "positive_rate": 0.1
+        },
+        {
+          "label": "Surgery-Cardiovascular",
+          "count": 98,
+          "pct": 0.096,
+          "positives": 6,
+          "positive_rate": 0.06122
+        },
+        {
+          "label": "Pediatrics-CriticalCare",
+          "count": 87,
+          "pct": 0.085,
+          "positives": 3,
+          "positive_rate": 0.03448
+        }
+      ],
+      "n_levels_shown": 30,
+      "n_levels_total": 72,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.732,
+      "notes": [
+        "High cardinality (72 levels); showing top 30."
+      ]
+    },
+    "num_lab_procedures": {
+      "name": "num_lab_procedures",
+      "family": "Utilization (numeric)",
+      "dtype": "int64",
+      "inferred_role": "numeric",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 118,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": {
+        "min": 1.0,
+        "p01": 1.0,
+        "p05": 4.0,
+        "p25": 31.0,
+        "median": 44.0,
+        "mean": 43.09564098028811,
+        "p75": 57.0,
+        "p95": 73.0,
+        "p99": 85.0,
+        "max": 132.0,
+        "std": 19.674362249142124,
+        "skew": -0.23654392055049014,
+        "zeros_pct": 0.0
+      },
+      "numeric_bins": [
+        {
+          "bin": "(0.999, 14.0]",
+          "left": 0.999,
+          "right": 14.0,
+          "count": 10318,
+          "positive_rate": 0.09808
+        },
+        {
+          "bin": "(14.0, 27.0]",
+          "left": 14.0,
+          "right": 27.0,
+          "count": 10141,
+          "positive_rate": 0.0994
+        },
+        {
+          "bin": "(27.0, 35.0]",
+          "left": 27.0,
+          "right": 35.0,
+          "count": 11270,
+          "positive_rate": 0.10941
+        },
+        {
+          "bin": "(35.0, 40.0]",
+          "left": 35.0,
+          "right": 40.0,
+          "count": 10556,
+          "positive_rate": 0.108
+        },
+        {
+          "bin": "(40.0, 44.0]",
+          "left": 40.0,
+          "right": 44.0,
+          "count": 9530,
+          "positive_rate": 0.11962
+        },
+        {
+          "bin": "(44.0, 49.0]",
+          "left": 44.0,
+          "right": 49.0,
+          "count": 10795,
+          "positive_rate": 0.11135
+        },
+        {
+          "bin": "(49.0, 54.0]",
+          "left": 49.0,
+          "right": 54.0,
+          "count": 9377,
+          "positive_rate": 0.11496
+        },
+        {
+          "bin": "(54.0, 60.0]",
+          "left": 54.0,
+          "right": 60.0,
+          "count": 10364,
+          "positive_rate": 0.11868
+        },
+        {
+          "bin": "(60.0, 67.0]",
+          "left": 60.0,
+          "right": 67.0,
+          "count": 9399,
+          "positive_rate": 0.12278
+        },
+        {
+          "bin": "(67.0, 132.0]",
+          "left": 67.0,
+          "right": 132.0,
+          "count": 10016,
+          "positive_rate": 0.11581
+        }
+      ],
+      "target_lift": 1.1,
+      "notes": []
+    },
+    "num_procedures": {
+      "name": "num_procedures",
+      "family": "Utilization (numeric)",
+      "dtype": "int64",
+      "inferred_role": "numeric",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 7,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "p25": 0.0,
+        "median": 1.0,
+        "mean": 1.339730361810428,
+        "p75": 2.0,
+        "p95": 5.0,
+        "p99": 6.0,
+        "max": 6.0,
+        "std": 1.7058069791211592,
+        "skew": 1.3164147632805119,
+        "zeros_pct": 45.84
+      },
+      "numeric_bins": [
+        {
+          "bin": "(-0.001, 1.0]",
+          "left": -0.001,
+          "right": 1.0,
+          "count": 67394,
+          "positive_rate": 0.11425
+        },
+        {
+          "bin": "(1.0, 2.0]",
+          "left": 1.0,
+          "right": 2.0,
+          "count": 12717,
+          "positive_rate": 0.11182
+        },
+        {
+          "bin": "(2.0, 3.0]",
+          "left": 2.0,
+          "right": 3.0,
+          "count": 9443,
+          "positive_rate": 0.10685
+        },
+        {
+          "bin": "(3.0, 4.0]",
+          "left": 3.0,
+          "right": 4.0,
+          "count": 4180,
+          "positive_rate": 0.11029
+        },
+        {
+          "bin": "(4.0, 6.0]",
+          "left": 4.0,
+          "right": 6.0,
+          "count": 8032,
+          "positive_rate": 0.09524
+        }
+      ],
+      "target_lift": 1.024,
+      "notes": []
+    },
+    "num_medications": {
+      "name": "num_medications",
+      "family": "Utilization (numeric)",
+      "dtype": "int64",
+      "inferred_role": "numeric",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 75,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": {
+        "min": 1.0,
+        "p01": 3.0,
+        "p05": 6.0,
+        "p25": 10.0,
+        "median": 15.0,
+        "mean": 16.021844230882614,
+        "p75": 20.0,
+        "p95": 31.0,
+        "p99": 43.0,
+        "max": 81.0,
+        "std": 8.127566209167284,
+        "skew": 1.3266721343814565,
+        "zeros_pct": 0.0
+      },
+      "numeric_bins": [
+        {
+          "bin": "(0.999, 7.0]",
+          "left": 0.999,
+          "right": 7.0,
+          "count": 11249,
+          "positive_rate": 0.08116
+        },
+        {
+          "bin": "(7.0, 9.0]",
+          "left": 7.0,
+          "right": 9.0,
+          "count": 9266,
+          "positive_rate": 0.09691
+        },
+        {
+          "bin": "(9.0, 11.0]",
+          "left": 9.0,
+          "right": 11.0,
+          "count": 11141,
+          "positive_rate": 0.10179
+        },
+        {
+          "bin": "(11.0, 13.0]",
+          "left": 11.0,
+          "right": 13.0,
+          "count": 12090,
+          "positive_rate": 0.10885
+        },
+        {
+          "bin": "(13.0, 15.0]",
+          "left": 13.0,
+          "right": 15.0,
+          "count": 11499,
+          "positive_rate": 0.1121
+        },
+        {
+          "bin": "(15.0, 17.0]",
+          "left": 15.0,
+          "right": 17.0,
+          "count": 10349,
+          "positive_rate": 0.11808
+        },
+        {
+          "bin": "(17.0, 19.0]",
+          "left": 17.0,
+          "right": 19.0,
+          "count": 8601,
+          "positive_rate": 0.12208
+        },
+        {
+          "bin": "(19.0, 22.0]",
+          "left": 19.0,
+          "right": 22.0,
+          "count": 9789,
+          "positive_rate": 0.13158
+        },
+        {
+          "bin": "(22.0, 26.0]",
+          "left": 22.0,
+          "right": 26.0,
+          "count": 8031,
+          "positive_rate": 0.12813
+        },
+        {
+          "bin": "(26.0, 81.0]",
+          "left": 26.0,
+          "right": 81.0,
+          "count": 9751,
+          "positive_rate": 0.12491
+        }
+      ],
+      "target_lift": 1.179,
+      "notes": []
+    },
+    "number_outpatient": {
+      "name": "number_outpatient",
+      "family": "Utilization (numeric)",
+      "dtype": "int64",
+      "inferred_role": "numeric",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 39,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "p25": 0.0,
+        "median": 0.0,
+        "mean": 0.36935715268360747,
+        "p75": 0.0,
+        "p95": 2.0,
+        "p99": 5.0,
+        "max": 42.0,
+        "std": 1.267265096532678,
+        "skew": 8.832958927156982,
+        "zeros_pct": 83.55
+      },
+      "numeric_bins": [
+        {
+          "bin": "(-0.001, 1.0]",
+          "left": -0.001,
+          "right": 1.0,
+          "count": 93574,
+          "positive_rate": 0.10971
+        },
+        {
+          "bin": "(1.0, 42.0]",
+          "left": 1.0,
+          "right": 42.0,
+          "count": 8192,
+          "positive_rate": 0.13318
+        }
+      ],
+      "target_lift": 1.193,
+      "notes": []
+    },
+    "number_emergency": {
+      "name": "number_emergency",
+      "family": "Utilization (numeric)",
+      "dtype": "int64",
+      "inferred_role": "numeric",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 33,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "p25": 0.0,
+        "median": 0.0,
+        "mean": 0.19783621248747127,
+        "p75": 0.0,
+        "p95": 1.0,
+        "p99": 3.0,
+        "max": 76.0,
+        "std": 0.9304722684224636,
+        "skew": 22.855582151471214,
+        "zeros_pct": 88.81
+      },
+      "numeric_bins": [
+        {
+          "bin": "(-0.001, 1.0]",
+          "left": -0.001,
+          "right": 1.0,
+          "count": 98060,
+          "positive_rate": 0.10778
+        },
+        {
+          "bin": "(1.0, 76.0]",
+          "left": 1.0,
+          "right": 76.0,
+          "count": 3706,
+          "positive_rate": 0.21263
+        }
+      ],
+      "target_lift": 1.905,
+      "notes": []
+    },
+    "number_inpatient": {
+      "name": "number_inpatient",
+      "family": "Utilization (numeric)",
+      "dtype": "int64",
+      "inferred_role": "numeric",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 21,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "p25": 0.0,
+        "median": 0.0,
+        "mean": 0.635565906098304,
+        "p75": 1.0,
+        "p95": 3.0,
+        "p99": 6.0,
+        "max": 21.0,
+        "std": 1.2628632900973233,
+        "skew": 3.614138992302628,
+        "zeros_pct": 66.46
+      },
+      "numeric_bins": [
+        {
+          "bin": "(-0.001, 1.0]",
+          "left": -0.001,
+          "right": 1.0,
+          "count": 87151,
+          "positive_rate": 0.09442
+        },
+        {
+          "bin": "(1.0, 2.0]",
+          "left": 1.0,
+          "right": 2.0,
+          "count": 7566,
+          "positive_rate": 0.17433
+        },
+        {
+          "bin": "(2.0, 21.0]",
+          "left": 2.0,
+          "right": 21.0,
+          "count": 7049,
+          "positive_rate": 0.25663
+        }
+      ],
+      "target_lift": 2.3,
+      "notes": []
+    },
+    "diag_1": {
+      "name": "diag_1",
+      "family": "Diagnosis (ICD-9)",
+      "dtype": "object",
+      "inferred_role": "high_card_cat",
+      "n": 101766,
+      "n_missing": 21,
+      "pct_missing": 0.021,
+      "n_unique": 716,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "428",
+          "count": 6862,
+          "pct": 6.743,
+          "positives": 968,
+          "positive_rate": 0.14107
+        },
+        {
+          "label": "414",
+          "count": 6581,
+          "pct": 6.467,
+          "positives": 595,
+          "positive_rate": 0.09041
+        },
+        {
+          "label": "786",
+          "count": 4016,
+          "pct": 3.946,
+          "positives": 291,
+          "positive_rate": 0.07246
+        },
+        {
+          "label": "410",
+          "count": 3614,
+          "pct": 3.551,
+          "positives": 373,
+          "positive_rate": 0.10321
+        },
+        {
+          "label": "486",
+          "count": 3508,
+          "pct": 3.447,
+          "positives": 314,
+          "positive_rate": 0.08951
+        },
+        {
+          "label": "427",
+          "count": 2766,
+          "pct": 2.718,
+          "positives": 252,
+          "positive_rate": 0.09111
+        },
+        {
+          "label": "491",
+          "count": 2275,
+          "pct": 2.236,
+          "positives": 287,
+          "positive_rate": 0.12615
+        },
+        {
+          "label": "715",
+          "count": 2151,
+          "pct": 2.114,
+          "positives": 215,
+          "positive_rate": 0.09995
+        },
+        {
+          "label": "682",
+          "count": 2042,
+          "pct": 2.007,
+          "positives": 183,
+          "positive_rate": 0.08962
+        },
+        {
+          "label": "434",
+          "count": 2028,
+          "pct": 1.993,
+          "positives": 329,
+          "positive_rate": 0.16223
+        },
+        {
+          "label": "780",
+          "count": 2019,
+          "pct": 1.984,
+          "positives": 191,
+          "positive_rate": 0.0946
+        },
+        {
+          "label": "996",
+          "count": 1967,
+          "pct": 1.933,
+          "positives": 264,
+          "positive_rate": 0.13421
+        },
+        {
+          "label": "276",
+          "count": 1889,
+          "pct": 1.856,
+          "positives": 257,
+          "positive_rate": 0.13605
+        },
+        {
+          "label": "38",
+          "count": 1688,
+          "pct": 1.659,
+          "positives": 187,
+          "positive_rate": 0.11078
+        },
+        {
+          "label": "250.8",
+          "count": 1680,
+          "pct": 1.651,
+          "positives": 179,
+          "positive_rate": 0.10655
+        },
+        {
+          "label": "599",
+          "count": 1595,
+          "pct": 1.567,
+          "positives": 171,
+          "positive_rate": 0.10721
+        },
+        {
+          "label": "584",
+          "count": 1520,
+          "pct": 1.494,
+          "positives": 202,
+          "positive_rate": 0.13289
+        },
+        {
+          "label": "V57",
+          "count": 1207,
+          "pct": 1.186,
+          "positives": 163,
+          "positive_rate": 0.13505
+        },
+        {
+          "label": "250.6",
+          "count": 1183,
+          "pct": 1.162,
+          "positives": 219,
+          "positive_rate": 0.18512
+        },
+        {
+          "label": "518",
+          "count": 1115,
+          "pct": 1.096,
+          "positives": 110,
+          "positive_rate": 0.09865
+        },
+        {
+          "label": "820",
+          "count": 1082,
+          "pct": 1.063,
+          "positives": 171,
+          "positive_rate": 0.15804
+        },
+        {
+          "label": "577",
+          "count": 1057,
+          "pct": 1.039,
+          "positives": 142,
+          "positive_rate": 0.13434
+        },
+        {
+          "label": "493",
+          "count": 1056,
+          "pct": 1.038,
+          "positives": 98,
+          "positive_rate": 0.0928
+        },
+        {
+          "label": "435",
+          "count": 1016,
+          "pct": 0.998,
+          "positives": 78,
+          "positive_rate": 0.07677
+        },
+        {
+          "label": "562",
+          "count": 989,
+          "pct": 0.972,
+          "positives": 89,
+          "positive_rate": 0.08999
+        },
+        {
+          "label": "574",
+          "count": 965,
+          "pct": 0.948,
+          "positives": 84,
+          "positive_rate": 0.08705
+        },
+        {
+          "label": "296",
+          "count": 896,
+          "pct": 0.88,
+          "positives": 103,
+          "positive_rate": 0.11496
+        },
+        {
+          "label": "560",
+          "count": 876,
+          "pct": 0.861,
+          "positives": 92,
+          "positive_rate": 0.10502
+        },
+        {
+          "label": "250.7",
+          "count": 871,
+          "pct": 0.856,
+          "positives": 165,
+          "positive_rate": 0.18944
+        },
+        {
+          "label": "250.13",
+          "count": 851,
+          "pct": 0.836,
+          "positives": 113,
+          "positive_rate": 0.13278
+        }
+      ],
+      "n_levels_shown": 30,
+      "n_levels_total": 716,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.698,
+      "notes": [
+        "High cardinality (716 levels); showing top 30."
+      ]
+    },
+    "diag_2": {
+      "name": "diag_2",
+      "family": "Diagnosis (ICD-9)",
+      "dtype": "object",
+      "inferred_role": "high_card_cat",
+      "n": 101766,
+      "n_missing": 358,
+      "pct_missing": 0.352,
+      "n_unique": 748,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "276",
+          "count": 6752,
+          "pct": 6.635,
+          "positives": 810,
+          "positive_rate": 0.11996
+        },
+        {
+          "label": "428",
+          "count": 6662,
+          "pct": 6.546,
+          "positives": 842,
+          "positive_rate": 0.12639
+        },
+        {
+          "label": "250",
+          "count": 6071,
+          "pct": 5.966,
+          "positives": 446,
+          "positive_rate": 0.07346
+        },
+        {
+          "label": "427",
+          "count": 5036,
+          "pct": 4.949,
+          "positives": 563,
+          "positive_rate": 0.1118
+        },
+        {
+          "label": "401",
+          "count": 3736,
+          "pct": 3.671,
+          "positives": 268,
+          "positive_rate": 0.07173
+        },
+        {
+          "label": "496",
+          "count": 3305,
+          "pct": 3.248,
+          "positives": 368,
+          "positive_rate": 0.11135
+        },
+        {
+          "label": "599",
+          "count": 3288,
+          "pct": 3.231,
+          "positives": 371,
+          "positive_rate": 0.11283
+        },
+        {
+          "label": "403",
+          "count": 2823,
+          "pct": 2.774,
+          "positives": 429,
+          "positive_rate": 0.15197
+        },
+        {
+          "label": "414",
+          "count": 2650,
+          "pct": 2.604,
+          "positives": 220,
+          "positive_rate": 0.08302
+        },
+        {
+          "label": "411",
+          "count": 2566,
+          "pct": 2.521,
+          "positives": 249,
+          "positive_rate": 0.09704
+        },
+        {
+          "label": "250.02",
+          "count": 2074,
+          "pct": 2.038,
+          "positives": 221,
+          "positive_rate": 0.10656
+        },
+        {
+          "label": "707",
+          "count": 1999,
+          "pct": 1.964,
+          "positives": 285,
+          "positive_rate": 0.14257
+        },
+        {
+          "label": "585",
+          "count": 1871,
+          "pct": 1.839,
+          "positives": 272,
+          "positive_rate": 0.14538
+        },
+        {
+          "label": "584",
+          "count": 1649,
+          "pct": 1.62,
+          "positives": 190,
+          "positive_rate": 0.11522
+        },
+        {
+          "label": "491",
+          "count": 1545,
+          "pct": 1.518,
+          "positives": 201,
+          "positive_rate": 0.1301
+        },
+        {
+          "label": "250.01",
+          "count": 1523,
+          "pct": 1.497,
+          "positives": 196,
+          "positive_rate": 0.12869
+        },
+        {
+          "label": "285",
+          "count": 1520,
+          "pct": 1.494,
+          "positives": 141,
+          "positive_rate": 0.09276
+        },
+        {
+          "label": "780",
+          "count": 1491,
+          "pct": 1.465,
+          "positives": 147,
+          "positive_rate": 0.09859
+        },
+        {
+          "label": "425",
+          "count": 1434,
+          "pct": 1.409,
+          "positives": 175,
+          "positive_rate": 0.12204
+        },
+        {
+          "label": "682",
+          "count": 1433,
+          "pct": 1.408,
+          "positives": 190,
+          "positive_rate": 0.13259
+        },
+        {
+          "label": "486",
+          "count": 1379,
+          "pct": 1.355,
+          "positives": 142,
+          "positive_rate": 0.10297
+        },
+        {
+          "label": "518",
+          "count": 1355,
+          "pct": 1.331,
+          "positives": 138,
+          "positive_rate": 0.10185
+        },
+        {
+          "label": "424",
+          "count": 1071,
+          "pct": 1.052,
+          "positives": 110,
+          "positive_rate": 0.10271
+        },
+        {
+          "label": "413",
+          "count": 1042,
+          "pct": 1.024,
+          "positives": 87,
+          "positive_rate": 0.08349
+        },
+        {
+          "label": "250.6",
+          "count": 895,
+          "pct": 0.879,
+          "positives": 145,
+          "positive_rate": 0.16201
+        },
+        {
+          "label": "493",
+          "count": 881,
+          "pct": 0.866,
+          "positives": 70,
+          "positive_rate": 0.07946
+        },
+        {
+          "label": "305",
+          "count": 702,
+          "pct": 0.69,
+          "positives": 64,
+          "positive_rate": 0.09117
+        },
+        {
+          "label": "786",
+          "count": 644,
+          "pct": 0.633,
+          "positives": 48,
+          "positive_rate": 0.07453
+        },
+        {
+          "label": "280",
+          "count": 606,
+          "pct": 0.595,
+          "positives": 64,
+          "positive_rate": 0.10561
+        },
+        {
+          "label": "998",
+          "count": 571,
+          "pct": 0.561,
+          "positives": 63,
+          "positive_rate": 0.11033
+        }
+      ],
+      "n_levels_shown": 30,
+      "n_levels_total": 748,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.452,
+      "notes": [
+        "High cardinality (748 levels); showing top 30."
+      ]
+    },
+    "diag_3": {
+      "name": "diag_3",
+      "family": "Diagnosis (ICD-9)",
+      "dtype": "object",
+      "inferred_role": "high_card_cat",
+      "n": 101766,
+      "n_missing": 1423,
+      "pct_missing": 1.398,
+      "n_unique": 789,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "250",
+          "count": 11555,
+          "pct": 11.354,
+          "positives": 984,
+          "positive_rate": 0.08516
+        },
+        {
+          "label": "401",
+          "count": 8289,
+          "pct": 8.145,
+          "positives": 688,
+          "positive_rate": 0.083
+        },
+        {
+          "label": "276",
+          "count": 5175,
+          "pct": 5.085,
+          "positives": 603,
+          "positive_rate": 0.11652
+        },
+        {
+          "label": "428",
+          "count": 4577,
+          "pct": 4.498,
+          "positives": 560,
+          "positive_rate": 0.12235
+        },
+        {
+          "label": "427",
+          "count": 3955,
+          "pct": 3.886,
+          "positives": 459,
+          "positive_rate": 0.11606
+        },
+        {
+          "label": "414",
+          "count": 3664,
+          "pct": 3.6,
+          "positives": 338,
+          "positive_rate": 0.09225
+        },
+        {
+          "label": "496",
+          "count": 2605,
+          "pct": 2.56,
+          "positives": 350,
+          "positive_rate": 0.13436
+        },
+        {
+          "label": "403",
+          "count": 2357,
+          "pct": 2.316,
+          "positives": 385,
+          "positive_rate": 0.16334
+        },
+        {
+          "label": "585",
+          "count": 1992,
+          "pct": 1.957,
+          "positives": 336,
+          "positive_rate": 0.16867
+        },
+        {
+          "label": "272",
+          "count": 1969,
+          "pct": 1.935,
+          "positives": 135,
+          "positive_rate": 0.06856
+        },
+        {
+          "label": "599",
+          "count": 1941,
+          "pct": 1.907,
+          "positives": 239,
+          "positive_rate": 0.12313
+        },
+        {
+          "label": "V45",
+          "count": 1389,
+          "pct": 1.365,
+          "positives": 132,
+          "positive_rate": 0.09503
+        },
+        {
+          "label": "250.02",
+          "count": 1369,
+          "pct": 1.345,
+          "positives": 180,
+          "positive_rate": 0.13148
+        },
+        {
+          "label": "707",
+          "count": 1360,
+          "pct": 1.336,
+          "positives": 202,
+          "positive_rate": 0.14853
+        },
+        {
+          "label": "780",
+          "count": 1334,
+          "pct": 1.311,
+          "positives": 149,
+          "positive_rate": 0.11169
+        },
+        {
+          "label": "285",
+          "count": 1200,
+          "pct": 1.179,
+          "positives": 127,
+          "positive_rate": 0.10583
+        },
+        {
+          "label": "425",
+          "count": 1136,
+          "pct": 1.116,
+          "positives": 131,
+          "positive_rate": 0.11532
+        },
+        {
+          "label": "250.6",
+          "count": 1080,
+          "pct": 1.061,
+          "positives": 192,
+          "positive_rate": 0.17778
+        },
+        {
+          "label": "424",
+          "count": 1063,
+          "pct": 1.045,
+          "positives": 109,
+          "positive_rate": 0.10254
+        },
+        {
+          "label": "584",
+          "count": 963,
+          "pct": 0.946,
+          "positives": 127,
+          "positive_rate": 0.13188
+        },
+        {
+          "label": "305",
+          "count": 924,
+          "pct": 0.908,
+          "positives": 80,
+          "positive_rate": 0.08658
+        },
+        {
+          "label": "250.01",
+          "count": 915,
+          "pct": 0.899,
+          "positives": 113,
+          "positive_rate": 0.1235
+        },
+        {
+          "label": "682",
+          "count": 887,
+          "pct": 0.872,
+          "positives": 113,
+          "positive_rate": 0.1274
+        },
+        {
+          "label": "518",
+          "count": 854,
+          "pct": 0.839,
+          "positives": 106,
+          "positive_rate": 0.12412
+        },
+        {
+          "label": "41",
+          "count": 727,
+          "pct": 0.714,
+          "positives": 58,
+          "positive_rate": 0.07978
+        },
+        {
+          "label": "493",
+          "count": 694,
+          "pct": 0.682,
+          "positives": 74,
+          "positive_rate": 0.10663
+        },
+        {
+          "label": "278",
+          "count": 680,
+          "pct": 0.668,
+          "positives": 51,
+          "positive_rate": 0.075
+        },
+        {
+          "label": "530",
+          "count": 625,
+          "pct": 0.614,
+          "positives": 55,
+          "positive_rate": 0.088
+        },
+        {
+          "label": "786",
+          "count": 584,
+          "pct": 0.574,
+          "positives": 60,
+          "positive_rate": 0.10274
+        },
+        {
+          "label": "491",
+          "count": 574,
+          "pct": 0.564,
+          "positives": 67,
+          "positive_rate": 0.11672
+        }
+      ],
+      "n_levels_shown": 30,
+      "n_levels_total": 789,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.593,
+      "notes": [
+        "High cardinality (789 levels); showing top 30."
+      ]
+    },
+    "number_diagnoses": {
+      "name": "number_diagnoses",
+      "family": "Utilization (numeric)",
+      "dtype": "int64",
+      "inferred_role": "numeric",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 16,
+      "is_constant": false,
+      "levels": [],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": {
+        "min": 1.0,
+        "p01": 2.0,
+        "p05": 4.0,
+        "p25": 6.0,
+        "median": 8.0,
+        "mean": 7.422606764538254,
+        "p75": 9.0,
+        "p95": 9.0,
+        "p99": 9.0,
+        "max": 16.0,
+        "std": 1.9336001449974285,
+        "skew": -0.8767462388449533,
+        "zeros_pct": 0.0
+      },
+      "numeric_bins": [
+        {
+          "bin": "(0.999, 5.0]",
+          "left": 0.999,
+          "right": 5.0,
+          "count": 21007,
+          "positive_rate": 0.08492
+        },
+        {
+          "bin": "(5.0, 6.0]",
+          "left": 5.0,
+          "right": 6.0,
+          "count": 10161,
+          "positive_rate": 0.10412
+        },
+        {
+          "bin": "(6.0, 7.0]",
+          "left": 6.0,
+          "right": 7.0,
+          "count": 10393,
+          "positive_rate": 0.10767
+        },
+        {
+          "bin": "(7.0, 8.0]",
+          "left": 7.0,
+          "right": 8.0,
+          "count": 10616,
+          "positive_rate": 0.11812
+        },
+        {
+          "bin": "(8.0, 9.0]",
+          "left": 8.0,
+          "right": 9.0,
+          "count": 49474,
+          "positive_rate": 0.1238
+        },
+        {
+          "bin": "(9.0, 16.0]",
+          "left": 9.0,
+          "right": 16.0,
+          "count": 115,
+          "positive_rate": 0.14783
+        }
+      ],
+      "target_lift": 1.325,
+      "notes": []
+    },
+    "max_glu_serum": {
+      "name": "max_glu_serum",
+      "family": "Lab result",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 96420,
+      "pct_missing": 94.747,
+      "n_unique": 3,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "Norm",
+          "count": 2597,
+          "pct": 2.552,
+          "positives": 295,
+          "positive_rate": 0.11359
+        },
+        {
+          "label": ">200",
+          "count": 1485,
+          "pct": 1.459,
+          "positives": 185,
+          "positive_rate": 0.12458
+        },
+        {
+          "label": ">300",
+          "count": 1264,
+          "pct": 1.242,
+          "positives": 181,
+          "positive_rate": 0.1432
+        }
+      ],
+      "n_levels_shown": 3,
+      "n_levels_total": 3,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.283,
+      "notes": []
+    },
+    "A1Cresult": {
+      "name": "A1Cresult",
+      "family": "Lab result",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 84748,
+      "pct_missing": 83.277,
+      "n_unique": 3,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": ">8",
+          "count": 8216,
+          "pct": 8.073,
+          "positives": 811,
+          "positive_rate": 0.09871
+        },
+        {
+          "label": "Norm",
+          "count": 4990,
+          "pct": 4.903,
+          "positives": 482,
+          "positive_rate": 0.09659
+        },
+        {
+          "label": ">7",
+          "count": 3812,
+          "pct": 3.746,
+          "positives": 383,
+          "positive_rate": 0.10047
+        }
+      ],
+      "n_levels_shown": 3,
+      "n_levels_total": 3,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 0.9,
+      "notes": []
+    },
+    "metformin": {
+      "name": "metformin",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 81778,
+          "pct": 80.359,
+          "positives": 9418,
+          "positive_rate": 0.11517
+        },
+        {
+          "label": "Steady",
+          "count": 18346,
+          "pct": 18.028,
+          "positives": 1782,
+          "positive_rate": 0.09713
+        },
+        {
+          "label": "Up",
+          "count": 1067,
+          "pct": 1.048,
+          "positives": 88,
+          "positive_rate": 0.08247
+        },
+        {
+          "label": "Down",
+          "count": 575,
+          "pct": 0.565,
+          "positives": 69,
+          "positive_rate": 0.12
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.075,
+      "notes": []
+    },
+    "repaglinide": {
+      "name": "repaglinide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 100227,
+          "pct": 98.488,
+          "positives": 11152,
+          "positive_rate": 0.11127
+        },
+        {
+          "label": "Steady",
+          "count": 1384,
+          "pct": 1.36,
+          "positives": 182,
+          "positive_rate": 0.1315
+        },
+        {
+          "label": "Up",
+          "count": 110,
+          "pct": 0.108,
+          "positives": 20,
+          "positive_rate": 0.18182
+        },
+        {
+          "label": "Down",
+          "count": 45,
+          "pct": 0.044,
+          "positives": 3,
+          "positive_rate": 0.06667
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.629,
+      "notes": []
+    },
+    "nateglinide": {
+      "name": "nateglinide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101063,
+          "pct": 99.309,
+          "positives": 11277,
+          "positive_rate": 0.11158
+        },
+        {
+          "label": "Steady",
+          "count": 668,
+          "pct": 0.656,
+          "positives": 78,
+          "positive_rate": 0.11677
+        },
+        {
+          "label": "Up",
+          "count": 24,
+          "pct": 0.024,
+          "positives": 1,
+          "positive_rate": 0.04167
+        },
+        {
+          "label": "Down",
+          "count": 11,
+          "pct": 0.011,
+          "positives": 1,
+          "positive_rate": 0.09091
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.046,
+      "notes": []
+    },
+    "chlorpropamide": {
+      "name": "chlorpropamide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101680,
+          "pct": 99.915,
+          "positives": 11352,
+          "positive_rate": 0.11164
+        },
+        {
+          "label": "Steady",
+          "count": 79,
+          "pct": 0.078,
+          "positives": 5,
+          "positive_rate": 0.06329
+        },
+        {
+          "label": "Up",
+          "count": 6,
+          "pct": 0.006,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Down",
+          "count": 1,
+          "pct": 0.001,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "glimepiride": {
+      "name": "glimepiride",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 96575,
+          "pct": 94.899,
+          "positives": 10827,
+          "positive_rate": 0.11211
+        },
+        {
+          "label": "Steady",
+          "count": 4670,
+          "pct": 4.589,
+          "positives": 468,
+          "positive_rate": 0.10021
+        },
+        {
+          "label": "Up",
+          "count": 327,
+          "pct": 0.321,
+          "positives": 37,
+          "positive_rate": 0.11315
+        },
+        {
+          "label": "Down",
+          "count": 194,
+          "pct": 0.191,
+          "positives": 25,
+          "positive_rate": 0.12887
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.155,
+      "notes": []
+    },
+    "acetohexamide": {
+      "name": "acetohexamide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101765,
+          "pct": 99.999,
+          "positives": 11357,
+          "positive_rate": 0.1116
+        },
+        {
+          "label": "Steady",
+          "count": 1,
+          "pct": 0.001,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "glipizide": {
+      "name": "glipizide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 89080,
+          "pct": 87.534,
+          "positives": 9905,
+          "positive_rate": 0.11119
+        },
+        {
+          "label": "Steady",
+          "count": 11356,
+          "pct": 11.159,
+          "positives": 1268,
+          "positive_rate": 0.11166
+        },
+        {
+          "label": "Up",
+          "count": 770,
+          "pct": 0.757,
+          "positives": 99,
+          "positive_rate": 0.12857
+        },
+        {
+          "label": "Down",
+          "count": 560,
+          "pct": 0.55,
+          "positives": 85,
+          "positive_rate": 0.15179
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.36,
+      "notes": []
+    },
+    "glyburide": {
+      "name": "glyburide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 91116,
+          "pct": 89.535,
+          "positives": 10225,
+          "positive_rate": 0.11222
+        },
+        {
+          "label": "Steady",
+          "count": 9274,
+          "pct": 9.113,
+          "positives": 995,
+          "positive_rate": 0.10729
+        },
+        {
+          "label": "Up",
+          "count": 812,
+          "pct": 0.798,
+          "positives": 85,
+          "positive_rate": 0.10468
+        },
+        {
+          "label": "Down",
+          "count": 564,
+          "pct": 0.554,
+          "positives": 52,
+          "positive_rate": 0.0922
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.006,
+      "notes": []
+    },
+    "tolbutamide": {
+      "name": "tolbutamide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101743,
+          "pct": 99.977,
+          "positives": 11356,
+          "positive_rate": 0.11161
+        },
+        {
+          "label": "Steady",
+          "count": 23,
+          "pct": 0.023,
+          "positives": 1,
+          "positive_rate": 0.04348
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "pioglitazone": {
+      "name": "pioglitazone",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 94438,
+          "pct": 92.799,
+          "positives": 10583,
+          "positive_rate": 0.11206
+        },
+        {
+          "label": "Steady",
+          "count": 6976,
+          "pct": 6.855,
+          "positives": 727,
+          "positive_rate": 0.10421
+        },
+        {
+          "label": "Up",
+          "count": 234,
+          "pct": 0.23,
+          "positives": 29,
+          "positive_rate": 0.12393
+        },
+        {
+          "label": "Down",
+          "count": 118,
+          "pct": 0.116,
+          "positives": 18,
+          "positive_rate": 0.15254
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.367,
+      "notes": []
+    },
+    "rosiglitazone": {
+      "name": "rosiglitazone",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 95401,
+          "pct": 93.745,
+          "positives": 10692,
+          "positive_rate": 0.11207
+        },
+        {
+          "label": "Steady",
+          "count": 6100,
+          "pct": 5.994,
+          "positives": 641,
+          "positive_rate": 0.10508
+        },
+        {
+          "label": "Up",
+          "count": 178,
+          "pct": 0.175,
+          "positives": 19,
+          "positive_rate": 0.10674
+        },
+        {
+          "label": "Down",
+          "count": 87,
+          "pct": 0.085,
+          "positives": 5,
+          "positive_rate": 0.05747
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.004,
+      "notes": []
+    },
+    "acarbose": {
+      "name": "acarbose",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101458,
+          "pct": 99.697,
+          "positives": 11329,
+          "positive_rate": 0.11166
+        },
+        {
+          "label": "Steady",
+          "count": 295,
+          "pct": 0.29,
+          "positives": 25,
+          "positive_rate": 0.08475
+        },
+        {
+          "label": "Up",
+          "count": 10,
+          "pct": 0.01,
+          "positives": 2,
+          "positive_rate": 0.2
+        },
+        {
+          "label": "Down",
+          "count": 3,
+          "pct": 0.003,
+          "positives": 1,
+          "positive_rate": 0.33333
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.001,
+      "notes": []
+    },
+    "miglitol": {
+      "name": "miglitol",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101728,
+          "pct": 99.963,
+          "positives": 11353,
+          "positive_rate": 0.1116
+        },
+        {
+          "label": "Steady",
+          "count": 31,
+          "pct": 0.03,
+          "positives": 2,
+          "positive_rate": 0.06452
+        },
+        {
+          "label": "Down",
+          "count": 5,
+          "pct": 0.005,
+          "positives": 2,
+          "positive_rate": 0.4
+        },
+        {
+          "label": "Up",
+          "count": 2,
+          "pct": 0.002,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "troglitazone": {
+      "name": "troglitazone",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101763,
+          "pct": 99.997,
+          "positives": 11357,
+          "positive_rate": 0.1116
+        },
+        {
+          "label": "Steady",
+          "count": 3,
+          "pct": 0.003,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "tolazamide": {
+      "name": "tolazamide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 3,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101727,
+          "pct": 99.962,
+          "positives": 11354,
+          "positive_rate": 0.11161
+        },
+        {
+          "label": "Steady",
+          "count": 38,
+          "pct": 0.037,
+          "positives": 3,
+          "positive_rate": 0.07895
+        },
+        {
+          "label": "Up",
+          "count": 1,
+          "pct": 0.001,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 3,
+      "n_levels_total": 3,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "examide": {
+      "name": "examide",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "constant",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 1,
+      "is_constant": true,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101766,
+          "pct": 100.0,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": null,
+      "notes": [
+        "Zero variance \u2014 single value. Drop before modelling."
+      ]
+    },
+    "citoglipton": {
+      "name": "citoglipton",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "constant",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 1,
+      "is_constant": true,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101766,
+          "pct": 100.0,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 0,
+      "n_levels_total": 0,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": null,
+      "notes": [
+        "Zero variance \u2014 single value. Drop before modelling."
+      ]
+    },
+    "insulin": {
+      "name": "insulin",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 47383,
+          "pct": 46.561,
+          "positives": 4756,
+          "positive_rate": 0.10037
+        },
+        {
+          "label": "Steady",
+          "count": 30849,
+          "pct": 30.314,
+          "positives": 3433,
+          "positive_rate": 0.11128
+        },
+        {
+          "label": "Down",
+          "count": 12218,
+          "pct": 12.006,
+          "positives": 1698,
+          "positive_rate": 0.13898
+        },
+        {
+          "label": "Up",
+          "count": 11316,
+          "pct": 11.12,
+          "positives": 1470,
+          "positive_rate": 0.1299
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.245,
+      "notes": []
+    },
+    "glyburide-metformin": {
+      "name": "glyburide-metformin",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 4,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101060,
+          "pct": 99.306,
+          "positives": 11279,
+          "positive_rate": 0.11161
+        },
+        {
+          "label": "Steady",
+          "count": 692,
+          "pct": 0.68,
+          "positives": 77,
+          "positive_rate": 0.11127
+        },
+        {
+          "label": "Up",
+          "count": 8,
+          "pct": 0.008,
+          "positives": 0,
+          "positive_rate": 0.0
+        },
+        {
+          "label": "Down",
+          "count": 6,
+          "pct": 0.006,
+          "positives": 1,
+          "positive_rate": 0.16667
+        }
+      ],
+      "n_levels_shown": 4,
+      "n_levels_total": 4,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "glipizide-metformin": {
+      "name": "glipizide-metformin",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101753,
+          "pct": 99.987,
+          "positives": 11356,
+          "positive_rate": 0.1116
+        },
+        {
+          "label": "Steady",
+          "count": 13,
+          "pct": 0.013,
+          "positives": 1,
+          "positive_rate": 0.07692
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "glimepiride-pioglitazone": {
+      "name": "glimepiride-pioglitazone",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101765,
+          "pct": 99.999,
+          "positives": 11357,
+          "positive_rate": 0.1116
+        },
+        {
+          "label": "Steady",
+          "count": 1,
+          "pct": 0.001,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "metformin-rosiglitazone": {
+      "name": "metformin-rosiglitazone",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101764,
+          "pct": 99.998,
+          "positives": 11357,
+          "positive_rate": 0.1116
+        },
+        {
+          "label": "Steady",
+          "count": 2,
+          "pct": 0.002,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "metformin-pioglitazone": {
+      "name": "metformin-pioglitazone",
+      "family": "Medication (dose change)",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 101765,
+          "pct": 99.999,
+          "positives": 11357,
+          "positive_rate": 0.1116
+        },
+        {
+          "label": "Steady",
+          "count": 1,
+          "pct": 0.001,
+          "positives": 0,
+          "positive_rate": 0.0
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.0,
+      "notes": []
+    },
+    "change": {
+      "name": "change",
+      "family": "Indicator",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "No",
+          "count": 54755,
+          "pct": 53.805,
+          "positives": 5799,
+          "positive_rate": 0.10591
+        },
+        {
+          "label": "Ch",
+          "count": 47011,
+          "pct": 46.195,
+          "positives": 5558,
+          "positive_rate": 0.11823
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.059,
+      "notes": []
+    },
+    "diabetesMed": {
+      "name": "diabetesMed",
+      "family": "Indicator",
+      "dtype": "object",
+      "inferred_role": "binary_flag",
+      "n": 101766,
+      "n_missing": 0,
+      "pct_missing": 0.0,
+      "n_unique": 2,
+      "is_constant": false,
+      "levels": [
+        {
+          "label": "Yes",
+          "count": 78363,
+          "pct": 77.003,
+          "positives": 9111,
+          "positive_rate": 0.11627
+        },
+        {
+          "label": "No",
+          "count": 23403,
+          "pct": 22.997,
+          "positives": 2246,
+          "positive_rate": 0.09597
+        }
+      ],
+      "n_levels_shown": 2,
+      "n_levels_total": 2,
+      "numeric_summary": null,
+      "numeric_bins": null,
+      "target_lift": 1.042,
+      "notes": []
+    }
+  }
+}

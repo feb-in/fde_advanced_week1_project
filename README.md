@@ -2,52 +2,63 @@
 
 Predicts, **at discharge**, the probability a diabetic patient is readmitted
 within 30 days — and takes that prediction all the way to a **running, monitored,
-governed service**.
+governed service**, not a notebook model.
 
-> **Start here:** read `docs/PROBLEM_STATEMENT.md`, `docs/CAVEATS.md`, and
-> `docs/GOALS.md`, then work `PLAN.md` in order. `CLAUDE.md` is the build manual
-> Claude Code reads automatically.
+> **Start here:** `CLAUDE.md` is the build manual (read automatically by Claude
+> Code). Then `docs/PROJECT_BRIEF.md` (problem + graded traps) and
+> `docs/GOALS.md` (the authoritative staged plan and definition of done).
 
 ## Stack
-Python · scikit-learn / XGBoost · MLflow · DVC · FastAPI · SHAP · Fairlearn ·
-Evidently · Prometheus + Grafana · **Podman** (not Docker).
+Python 3.12 · **uv** · scikit-learn / **CatBoost** · MLflow · DVC · FastAPI ·
+SHAP · Fairlearn · Evidently · Prometheus + Grafana · **Podman** (not Docker).
+Deploy target: AWS or GCP.
 
-## Layout
+## Layout (cookiecutter-data-science flavour)
 ```
-docs/        problem statement, caveats, goals, class context, model card, logs
-src/         data/ features/ models/ serving/ monitoring/ governance/  (real logic)
-deploy/      Containerfile, compose.yaml, prometheus.yml, grafana/
-data/        raw/ interim/ processed/  (DVC-tracked, gitignored)
-notebooks/   exploration ONLY
-tests/       smoke test
+docs/         project brief, goals, feature log, model comparison/card, threshold note
+src/
+  data/       clean.py            — reproducible cleaning  → data/processed/
+  features/   build_features.py   — Strack-9 ICD-9 + engineered features → data/featurized/
+  models/     train.py · evaluate.py — LR baseline + CatBoost, MLflow-logged
+  app/        (later) FastAPI service: /predict (+ SHAP), /health, /metrics
+  monitoring/ (later) Evidently drift + retrain trigger
+  governance/ (later) Fairlearn audit + SHAP helpers
+deploy/       (later) Containerfile, compose.yaml, prometheus.yml, grafana/
+data/         raw/ interim/ processed/ featurized/   (DVC-tracked, gitignored)
+EDA/          exploratory analysis (Streamlit dashboard + analysis engine)
+notebooks/    exploration ONLY — never the source of truth
+tests/        smoke test
+dvc.yaml      clean → featurize pipeline (`dvc repro`)
 ```
 
-## Quickstart (fill in as you build — Phase 0 in `PLAN.md`)
+## Quickstart
 ```bash
-# env
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+# 1. environment (uv is the source of truth; pyproject.toml + uv.lock are pinned)
+uv sync                       # or, pip path: pip install -r requirements.txt
 
-# experiment tracking
+# 2. data: pull the DVC-tracked raw CSV, then rebuild the pipeline
+dvc pull                      # restores data/raw/diabetic_data.csv from the .dvc pointer
+dvc repro                     # clean → featurize  (data/processed, data/featurized)
+
+# 3. experiment tracking (local server, SQLite backend)
 mlflow server --backend-store-uri sqlite:///mlflow.db \
   --default-artifact-root ./mlruns --host 0.0.0.0 --port 5000
 
-# data versioning
-dvc init
-
-# (later) rebuild data → train → serve
-python -m src.data.download
-python -m src.data.clean
-python -m src.models.train
-podman compose -f deploy/compose.yaml up   # api + mlflow + prometheus + grafana
+# 4. train: LR baseline + CatBoost, both logged to MLflow
+uv run python src/models/train.py
+#    (writes to sqlite:///mlflow.db by default; set MLFLOW_TRACKING_URI to use the server)
 ```
 
-## Key reminders (full list in `docs/CAVEATS.md`)
-- Load with `na_values="?"` · **split by `patient_nbr`** (use the Kaggle CSV) ·
-  A1c-missing is its own category · filter expired discharges · **headline metric
-  is PR-AUC, not accuracy** · log every run to MLflow.
+## Status
+- ✅ Stage 1–3 — env/DVC, reproducible cleaning, deterministic featurization.
+- ✅ Stage 4 (modeling) — LR baseline + CatBoost, plain `StratifiedKFold` CV, a
+  20% held-out test touched once, all runs in MLflow. See
+  `docs/MODEL_COMPARISON.md` for the "earn your complexity" decision.
+- ⏭️ Next — calibration, operating-threshold choice (`docs/THRESHOLD_DECISION.md`),
+  register the best model to the MLflow registry, then package + serve under Podman.
 
-## Data
-Diabetes 130-US Hospitals (1999–2008), 101,766 encounters, ~11.2% positive.
-- Modeling source (keeps patient ID): `kaggle.com/datasets/brandao/diabetes`
-- Canonical original: `archive.ics.uci.edu/dataset/296`
+## Headline metrics (not accuracy)
+The positive class is ~9%, so accuracy is a trap. We report **PR-AUC**, **recall
+at a fixed precision**, and **calibration (Brier)**. Healthy range on this dataset:
+ROC-AUC ~0.66–0.70, AUPRC ~0.20–0.30. A leakage tripwire stops us if test
+ROC-AUC > 0.75.

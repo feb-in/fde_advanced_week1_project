@@ -2,8 +2,14 @@
 pandas>=2.1
 numpy>=1.26
 scikit-learn>=1.4
-xgboost>=2.0
+catboost>=1.2             # chosen model — native categoricals, class weights
+matplotlib>=3.8           # PR/ROC/calibration/confusion plots logged to MLflow
+xgboost>=2.0              # considered; CatBoost preferred for native cat handling
 # lightgbm>=4.1            # optional alternative to xgboost
+
+# NOTE: pyproject.toml + uv.lock are the authoritative, fully-pinned dependency
+# source (build/deploy with `uv sync --frozen`). This file is the human-readable
+# mirror kept in sync for the pip-based path.
 
 # --- experiment tracking & data versioning ---
 mlflow>=2.12
@@ -24,6 +30,8 @@ evidently>=0.4
 
 # --- profiling / EDA (Phase 1) ---
 ydata-profiling>=4.7
+streamlit>=1.40           # interactive EDA dashboard (src/eda/dashboard.py)
+plotly>=5.22              # interactive charts for the dashboard
 
 # --- data source ---
 kaggle>=1.6               # to pull diabetic_data.csv (keeps patient_nbr)
