@@ -51,7 +51,7 @@ These columns are present in the prepared parquet but intentionally untransforme
 
 ## Stage 3 — Featurization (`src/features/build_features.py`)
 
-Input: `data/prepared/diabetes_clean.parquet` (69,987 × 47). Output: one typed
+Input: `data/processed/diabetes_clean.parquet` (69,987 × 47). Output: one typed
 parquet `data/featurized/diabetes_features.parquet` (69,987 × 58), DVC-tracked via
 the `featurize` stage in `dvc.yaml`. Positive rate unchanged at 0.0898. All
 transformations are deterministic; no rows added or removed.

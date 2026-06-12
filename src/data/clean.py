@@ -1,6 +1,6 @@
 """clean.py — reproducible cleaning pass for the diabetes readmission dataset.
 
-Reads the raw Kaggle CSV and writes ONE clean, typed parquet to data/prepared/.
+Reads the raw Kaggle CSV and writes ONE clean, typed parquet to data/processed/.
 This script is the single source of truth for every cleaning decision. It is
 tracked by DVC; `dvc repro` re-runs it whenever src/data/clean.py or the raw CSV
 changes.
@@ -13,7 +13,7 @@ Deliberately out of scope here (handled in the featurization stage):
 
 Run directly:
     uv run python src/data/clean.py --raw data/raw/diabetic_data.csv \
-                                    --out data/prepared/diabetes_clean.parquet
+                                    --out data/processed/diabetes_clean.parquet
 
 Every decision below maps to a hard rule in CLAUDE.md / docs/PROJECT_BRIEF.md.
 """
@@ -191,6 +191,6 @@ def main(raw: str, out: str) -> None:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--raw", default="data/raw/diabetic_data.csv")
-    ap.add_argument("--out", default="data/prepared/diabetes_clean.parquet")
+    ap.add_argument("--out", default="data/processed/diabetes_clean.parquet")
     args = ap.parse_args()
     main(args.raw, args.out)

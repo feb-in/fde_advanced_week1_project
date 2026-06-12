@@ -1,6 +1,6 @@
 """build_features.py — deterministic feature engineering for readmission risk.
 
-Reads the frozen clean parquet (data/prepared/diabetes_clean.parquet) and writes
+Reads the frozen clean parquet (data/processed/diabetes_clean.parquet) and writes
 ONE typed parquet to data/featurized/. Every transformation here is a fixed,
 justified rule — there is NO experimentation and NO modeling in this stage. The
 feature list is locked in docs/GOALS.md (Stage 3) and each feature is logged in
@@ -17,7 +17,7 @@ Design notes
 
 Run directly:
     uv run python src/features/build_features.py \
-        --in data/prepared/diabetes_clean.parquet \
+        --in data/processed/diabetes_clean.parquet \
         --out data/featurized/diabetes_features.parquet
 """
 from __future__ import annotations
@@ -317,7 +317,7 @@ def main(in_path: str, out_path: str) -> None:
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--in", dest="in_path", default="data/prepared/diabetes_clean.parquet")
+    ap.add_argument("--in", dest="in_path", default="data/processed/diabetes_clean.parquet")
     ap.add_argument("--out", dest="out_path", default="data/featurized/diabetes_features.parquet")
     args = ap.parse_args()
     main(args.in_path, args.out_path)

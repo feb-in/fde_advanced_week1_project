@@ -3,16 +3,16 @@
 # so this stage's dependency chain is fully versioned end to end.
 stages:
   clean:
-    cmd: uv run python src/data/clean.py --raw data/raw/diabetic_data.csv --out data/prepared/diabetes_clean.parquet
+    cmd: uv run python src/data/clean.py --raw data/raw/diabetic_data.csv --out data/processed/diabetes_clean.parquet
     deps:
       - src/data/clean.py
       - data/raw/diabetic_data.csv
     outs:
-      - data/prepared/diabetes_clean.parquet
+      - data/processed/diabetes_clean.parquet
   featurize:
-    cmd: uv run python src/features/build_features.py --in data/prepared/diabetes_clean.parquet --out data/featurized/diabetes_features.parquet
+    cmd: uv run python src/features/build_features.py --in data/processed/diabetes_clean.parquet --out data/featurized/diabetes_features.parquet
     deps:
       - src/features/build_features.py
-      - data/prepared/diabetes_clean.parquet
+      - data/processed/diabetes_clean.parquet
     outs:
       - data/featurized/diabetes_features.parquet

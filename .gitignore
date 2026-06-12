@@ -2,9 +2,15 @@
 data/raw/*
 data/interim/*
 data/processed/*
+data/featurized/*
 !data/**/.gitkeep
+# keep the small DVC pointer files (they ARE the git record):
+!data/**/*.dvc
 *.csv
 !docs/**/*.csv          # allow small reference CSVs in docs (e.g. feature log)
+
+# --- original Kaggle download (large CSV + data-dictionary PDF; not git-tracked) ---
+dataset/
 
 # --- MLflow ---
 mlruns/
@@ -16,6 +22,10 @@ mlflow.db
 *.joblib
 *.onnx
 artifacts/
+# ...but keep the EDA artifacts: the per-column analysis is expensive to
+# reproduce (multi-agent run) and the dashboard needs it on a clean checkout.
+!EDA/artifacts/
+!EDA/artifacts/*.json
 
 # --- python ---
 __pycache__/

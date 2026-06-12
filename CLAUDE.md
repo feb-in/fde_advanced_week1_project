@@ -72,7 +72,7 @@ These encode the graded traps. Breaking one silently costs marks. See
 |---|---|---|
 | Language | Python 3.12+ | |
 | Env | **uv** | `uv add` / `uv run`; never `pip install` into base; deps in `pyproject.toml` |
-| Data versioning | **DVC** | track raw CSV + prepared parquet |
+| Data versioning | **DVC** | track raw CSV + processed parquet |
 | Experiment tracking | **MLflow** | local server, SQLite backend, model registry |
 | Modeling | scikit-learn, **CatBoost** | LR baseline first, then CatBoost; Optuna for tuning |
 | Calibration | sklearn `CalibratedClassifierCV` | isotonic or Platt |
@@ -136,7 +136,7 @@ real file that belongs in it is written.
 ├── CLAUDE.md · requirements.txt · pyproject.toml · .gitignore
 ├── docs/        # PROJECT_BRIEF.md · GOALS.md · FEATURE_LOG.md
 ├── data/raw/    # diabetic_data.csv (DVC-tracked, gitignored)
-├── data/prepared/ # diabetes_clean.parquet (DVC-tracked, written by clean stage)
+├── data/processed/ # diabetes_clean.parquet (DVC-tracked, written by clean stage)
 ├── dataset/     # original Kaggle download (CSV + data-dictionary PDF)
 └── EDA/         # exploratory data analysis: Streamlit dashboard + analysis engine
 ```
@@ -144,10 +144,10 @@ real file that belongs in it is written.
 **Where new code lands as you build it (create each on first use):**
 
 ```
-src/data/        clean.py                            # reproducible cleaning → data/prepared/
+src/data/        clean.py                            # reproducible cleaning → data/processed/
 src/features/    build_features.py                  # Strack-9 ICD-9, engineered features
 src/models/      train.py · evaluate.py             # LR baseline + CatBoost + Optuna, MLflow
-src/serving/     app.py · schemas.py                # FastAPI /predict (score + SHAP), /health
+src/app/         app.py · schemas.py                # FastAPI /predict (score + SHAP), /health  (NOTE: this is the serving folder — named src/app/, NOT src/serving/)
 src/monitoring/  drift.py · retrain_trigger.py      # Evidently report + numeric trigger
 src/governance/  fairness.py · explain.py           # Fairlearn MetricFrame + SHAP helpers
 deploy/          Containerfile · compose.yaml · prometheus.yml · grafana/

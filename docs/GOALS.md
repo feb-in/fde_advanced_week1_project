@@ -46,7 +46,7 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 
 ### What we build
 `src/data/clean.py` — a single, re-runnable cleaning script that produces
-`data/prepared/diabetes_clean.parquet`, DVC-tracked via `dvc.yaml`.
+`data/processed/diabetes_clean.parquet`, DVC-tracked via `dvc.yaml`.
 
 ### Key decisions (all locked — do not vary)
 - Load with `na_values=["?"], keep_default_na=False`.
@@ -57,13 +57,13 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 - Fill `payer_code`, `medical_specialty`, `race` NaN → `"Unknown"`.
 - Preserve `"None"` in `A1Cresult`/`max_glu_serum` as a real category level.
 - Target: `<30` → 1, everything else → 0.
-- Output: one typed parquet to `data/prepared/`.
+- Output: one typed parquet to `data/processed/`.
 
 ### Definition of done
 - [ ] `dvc repro` runs `clean.py` end-to-end with no errors.
 - [ ] Sanity report printed: ~70k rows, positive rate 0.09–0.11.
 - [ ] `df["patient_nbr"].is_unique` assertion passes (confirmed in script).
-- [ ] `data/prepared/diabetes_clean.parquet.dvc` (or equivalent DVC out) committed.
+- [ ] `data/processed/diabetes_clean.parquet.dvc` (or equivalent DVC out) committed.
 - [ ] Cleaning decisions logged in `docs/FEATURE_LOG.md`.
 
 ---
