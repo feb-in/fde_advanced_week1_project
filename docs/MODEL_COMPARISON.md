@@ -61,7 +61,85 @@ fallback model if SHAP-based explanations or CatBoost behaviour are ever contest
 ## Caveats (deferred to later gates)
 - Probabilities are **uncalibrated**; Brier scores reflect that. Calibration
   (`CalibratedClassifierCV`) comes next, before any threshold is chosen.
-- No hyperparameter tuning yet — CatBoost ran a sane fixed config. Optuna is the
-  next gate and can only widen, not erase, this margin.
 - SMOTE was considered and **rejected** (fabricates ~54k synthetic clinical records,
   weak defensibility, hurts AUC); imbalance is handled via class weights.
+
+---
+
+# Tuned comparison — Stage 4 (cont.): Optuna hyperparameter search
+
+Both models were tuned with Optuna (TPE, seeded), **50 trials for LR, 40 for
+CatBoost**. Objective = **mean 5-fold CV AUPRC** on the train portion (the chased
+metric; ROC-AUC logged every trial but never optimized). The held-out test set is
+the **same byte-identical 20% split** as the baseline (shared `prepare_data()`,
+seed 42) and was again **touched exactly once** per model, after the search. No
+SMOTE; imbalance via class weights (`class_weight` / `auto_class_weights`).
+
+## Numbers (tuned)
+
+| model | best CV AUPRC | CV ROC-AUC | test AUPRC | test ROC-AUC | test recall@P=0.30 | test Brier | tripwire |
+|---|---:|---:|---:|---:|---:|---:|:--:|
+| logreg (tuned)   | 0.1583 | 0.6439 | 0.1646 | 0.6510 | 0.0660 | 0.2296 | OK |
+| catboost (tuned) | 0.1901 | 0.6567 | 0.2056 | 0.6661 | 0.1710 | 0.0982 | OK |
+| **CatBoost − LR (test)** | | | **+0.0410** | **+0.0151** | **+0.1050** | **−0.1314** | |
+
+Best configs: **LR** — elasticnet (`l1_ratio≈0.58`), `C≈15.9`, `class_weight="balanced"`.
+**CatBoost** — `depth=4`, `learning_rate≈0.06`, `l2_leaf_reg≈6.9`,
+`random_strength≈0.59`, `bagging_temperature≈0.005`, `border_count=62`,
+`auto_class_weights="SqrtBalanced"` (notably *shallower* than the baseline depth-6 —
+the search preferred more regularization).
+
+> **Methodology note:** the tuned **CV AUPRC** uses *mean per-fold* average precision,
+> whereas the baseline table's CV AUPRC used *pooled out-of-fold* AP — so the CV
+> columns are **not** directly comparable across the two gates. The honest
+> "what did tuning buy" axis is the **held-out test set**, which is identical in
+> data and methodology across both gates.
+
+## What tuning bought (untuned → tuned, test AUPRC)
+
+| model | baseline test AUPRC | tuned test AUPRC | Δ absolute | Δ relative |
+|---|---:|---:|---:|---:|
+| logreg   | 0.1702 | 0.1646 | **−0.0056** | −3.3% |
+| catboost | 0.2015 | 0.2056 | **+0.0041** | +2.0% |
+
+## Did tuned LR close the gap to CatBoost on AUPRC?
+
+**No — it slightly widened.** Tuning bought LR **nothing**: its tuned test AUPRC
+(0.1646) is flat-to-slightly-below its default-config baseline (0.1702), well within
+noise. The CatBoost-over-LR test-AUPRC gap went from **+0.0313 (+18.4%)** at baseline
+to **+0.0410 (+24.9%)** tuned. LR is **saturated** — a linear model over one-hot
+features has hit its representational ceiling on this data; sweeping `C` / penalty /
+`l1_ratio` just slides along a flat ridge. The gap is **structural** (linearity vs the
+feature interactions CatBoost captures natively), not a tuning artifact. CatBoost's own
+gain was modest (+0.0041) and came with a *simpler* tree (depth 4), consistent with the
+dataset's known ~0.66–0.70 ROC-AUC ceiling: there is little headroom left for either
+model, and what signal exists is non-linear.
+
+The operational gap is the sharper story: at precision = 0.30, tuned CatBoost catches
+**17.1%** of true 30-day readmits versus tuned LR's **6.6%** — CatBoost surfaces
+**~2.6× as many** actionable patients at the same precision.
+
+## Recommendation (final call is yours)
+
+This is **not** "black box vs transparent." TreeSHAP gives **exact** per-prediction
+attributions for CatBoost — we do not lose local explanations, we compute them
+differently. The real trade-off is:
+
+- **CatBoost — lead at presentation.** Stronger on the chased metric (AUPRC) and
+  decisively stronger on the operational metric (recall@precision), explained per
+  prediction by exact SHAP. This is the model to carry into calibration, threshold
+  selection, and the served `/predict` path.
+- **Logistic regression — explainable corroborating reference.** Inherently linear
+  with signed coefficients readable without any tooling; serves as the always-defensible
+  sanity floor and the fallback if CatBoost's behaviour or its SHAP explanations are ever
+  contested. It is retained, not discarded.
+
+So the framing is **stronger-with-exact-SHAP (CatBoost) vs simpler-inherently-linear
+(LR)** — and CatBoost leads on the evidence. **Final call left to you.**
+
+## Caveats (still deferred)
+- Probabilities remain **uncalibrated** (note CatBoost's tuned Brier 0.098 vs LR's
+  0.230 reflects scale, not true calibration) — `CalibratedClassifierCV` is the next gate.
+- No operating threshold chosen yet; `recall@P=0.30` is a fixed reporting point, not the
+  decided cut. Threshold selection + `docs/THRESHOLD_DECISION.md` come next.
+- No model registered yet — registration follows calibration + threshold.
