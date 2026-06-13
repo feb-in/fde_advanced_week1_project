@@ -1,0 +1,25 @@
+# Keep the build context small and the image lean. Podman reads this too
+# (.containerignore falls back to .dockerignore). The Containerfile COPYs only
+# specific files; everything below is excluded from the context entirely.
+.venv/
+data/
+mlruns/
+mlflow.db
+gx/
+reference/
+dataset/
+notebooks/
+EDA/
+tests/
+docs/
+.git/
+.dvc/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+reports/
+*.md

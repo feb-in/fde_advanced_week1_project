@@ -1,0 +1,48 @@
+# Docker-compatible compose for `podman compose` (Podman v4+) or `podman-compose`.
+# Brings up the API now; observability services are scaffolded but NOT wired (Stage 6).
+#
+#   podman compose up --build
+#
+services:
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Containerfile
+    image: readmission-api:latest
+    container_name: readmission-api
+    ports:
+      - "8000:8000"
+    environment:
+      # The model is baked into the image (deploy/export_model.py). No registry
+      # mount needed. Rollback = re-point the @staging alias, re-export, rebuild
+      # (or roll the image tag back to a previously-good build).
+      MODEL_BUNDLE_DIR: /app/model_bundle
+    restart: unless-stopped
+    # Note: build requires the bundle to exist first —
+    #   uv run python deploy/export_model.py && podman compose up --build
+
+# --- Stage 6 (observability) will add these. Intentionally NOT wired yet. ---
+# Placeholders only — uncomment + configure in the observability gate.
+#
+#  prometheus:
+#    image: docker.io/prom/prometheus:latest
+#    volumes:
+#      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:Z   # scrapes api:8000/metrics
+#    ports:
+#      - "9090:9090"
+#
+#  grafana:
+#    image: docker.io/grafana/grafana:latest
+#    ports:
+#      - "3000:3000"
+#    depends_on:
+#      - prometheus
+#
+#  mlflow:
+#    # Optional: a standalone MLflow tracking server instead of the sqlite bind-mount.
+#    image: ghcr.io/mlflow/mlflow:latest
+#    command: >
+#      mlflow server --backend-store-uri sqlite:///mlflow.db
+#      --default-artifact-root /mlruns --host 0.0.0.0 --port 5000
+#    ports:
+#      - "5000:5000"

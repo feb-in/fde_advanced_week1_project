@@ -1,0 +1,45 @@
+# Containerfile for the readmission API (Podman; build with `podman build -f deploy/Containerfile`).
+#
+# python:3.12-slim — the project requires Python >=3.12 (pyproject + .python-version),
+# so the 3.11 base the brief mentioned cannot `uv sync` this lock; 3.12 is required.
+FROM python:3.12-slim
+
+# uv = fast, reproducible installer. Deps come ONLY from the committed uv.lock
+# (pinned, no loose pip installs).
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/app/.venv \
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    # The model is BAKED into the image (see below): the MLflow registry stores
+    # absolute host paths that don't resolve in-container, so a runtime mount fails.
+    # The registry alias remains the logical rollback handle (deploy/export_model.py).
+    MODEL_BUNDLE_DIR=/app/model_bundle
+
+WORKDIR /app
+
+# 1) Dependencies as a cached layer — pinned from uv.lock, project itself not installed.
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-install-project --no-dev
+
+# 2) Copy ONLY what serving needs (no training/EDA/notebooks/tests → lean image):
+#    the API, the SHARED featurization (clean_columns + engineer_features), the
+#    data contract, and the model wrapper class needed to unpickle the model.
+COPY src/app/                ./src/app/
+COPY src/features/build_features.py ./src/features/build_features.py
+COPY src/data/clean.py       ./src/data/clean.py
+COPY src/contracts/          ./src/contracts/
+COPY src/models/wrappers.py  ./src/models/wrappers.py
+
+# 3) The baked model bundle (model.pkl + threshold/version/alias meta), produced by
+#    `uv run python deploy/export_model.py` on the host from the @staging alias.
+COPY deploy/model_bundle/    ./model_bundle/
+
+# Rootless-safe: never run as root (Podman runs rootless by default).
+RUN useradd --uid 1000 --create-home appuser && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+CMD ["uvicorn", "src.app.app:app", "--host", "0.0.0.0", "--port", "8000"]

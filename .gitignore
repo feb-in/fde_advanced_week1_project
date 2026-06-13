@@ -55,3 +55,6 @@ gx/
 .DS_Store
 .idea/
 .vscode/
+
+# --- baked model bundle (build artifact; regenerate via deploy/export_model.py) ---
+deploy/model_bundle/
