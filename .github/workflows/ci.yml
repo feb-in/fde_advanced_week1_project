@@ -34,11 +34,13 @@ jobs:
           python-version: "3.12"
 
       # ---- Tier 1: schema/contract tests on the runner (no model, no data) ----
+      # uv run builds an ephemeral env with only these test deps (--with) and ignores
+      # the project (--no-project) — no `uv venv`, so nothing collides with the venv
+      # setup-uv already provisions on the runner.
       - name: Tier 1 — schema/contract tests
-        run: |
-          uv venv
-          uv pip install pydantic==2.13.4 pytest==9.0.3
-          .venv/bin/python -m pytest tests/test_tier1_schema.py -q
+        run: >
+          uv run --no-project --with pydantic==2.13.4 --with pytest==9.0.3
+          python -m pytest tests/test_tier1_schema.py -q
 
       # ---- Build the image. The model bundle is baked in here; no registry access. ----
       - name: Set up Docker Buildx
@@ -66,9 +68,9 @@ jobs:
       - name: Tier 2/3 — model-dependent tests vs the running container
         env:
           API_BASE_URL: http://localhost:8000
-        run: |
-          uv pip install httpx==0.28.1 pytest==9.0.3
-          .venv/bin/python -m pytest tests/test_container_smoke.py -q
+        run: >
+          uv run --no-project --with httpx==0.28.1 --with pytest==9.0.3
+          python -m pytest tests/test_container_smoke.py -q
 
       - name: Container logs (on failure)
         if: failure()
