@@ -63,9 +63,11 @@ dvc.yaml      validate_raw → clean → featurize → validate_processed (`dvc 
 # 1. environment (uv is the source of truth; pyproject.toml + uv.lock are pinned)
 uv sync
 
-# 2. data — NOTE: no DVC remote is configured yet (see "Reproducibility" below).
-#    On a fresh clone, place the raw Kaggle CSV at data/raw/diabetic_data.csv, then:
-dvc repro                     # validate_raw → clean → featurize → validate_processed
+# 2. data — PRIMARY path (no credentials): place the raw Kaggle CSV at
+#    data/raw/diabetic_data.csv, then rebuild the whole dataset:
+dvc repro                     # validate_raw → clean → featurize → validate_processed → make_reference
+#    OPTIONAL (if you have DagsHub access): fetch the tracked data instead of rebuilding
+# dvc pull -r origin
 
 # 3. train: LR baseline + CatBoost, logged to MLflow (sqlite:///mlflow.db by default)
 uv run python src/models/train.py
@@ -163,13 +165,21 @@ reports: `reports/monitoring/drift_{control,shifted}.html`.
   model card, reflection.
 - ✅ **Demo UI** — thin-client Streamlit with a load-random-held-out-patient
   truth-vs-prediction demo.
-- ⬜ **Remaining** — verify clean-checkout reproducibility (no DVC remote yet);
+- ⬜ **Remaining** — verify clean-checkout reproducibility end-to-end;
   optional AWS Fargate live deploy.
 
 ## Reproducibility
-`dvc repro` rebuilds the dataset from the raw CSV. **No DVC remote is configured**, so
-`dvc pull` will not work on a fresh clone — obtain the raw Kaggle CSV and place it at
-`data/raw/diabetic_data.csv`, or configure a DVC remote and `dvc push`. See
+
+**Primary path (no credentials needed):** rebuild the dataset from the raw CSV. Obtain the
+raw Kaggle CSV, place it at `data/raw/diabetic_data.csv`, and run `dvc repro` — it runs
+the full pipeline (`validate_raw → clean → featurize → validate_processed → make_reference`)
+and regenerates the processed/featurized parquets and the drift reference. This is the
+supported default and needs no external access.
+
+**Optional convenience (if you have DagsHub access):** the DVC-tracked data (raw CSV,
+processed + featurized parquets, drift reference) is also pushed to a **DagsHub DVC
+remote**, so `dvc pull -r origin` fetches it instead of rebuilding. This requires DagsHub
+authentication, so it's optional — the rebuild path above remains the primary method. See
 `docs/RESUME_HERE.md` (submission checklist) for the full done-vs-left list.
 
 ## Headline metrics (not accuracy)
