@@ -257,19 +257,18 @@ def render_truth_vs_prediction(res, truth):
         kind = "False negative — missed a real readmission"
     mark, tone = ("✓", C_GREEN) if correct else ("✗", C_RED)
 
-    st.markdown(f"<div class='truthcard' style='border-color:{tone}'>", unsafe_allow_html=True)
-    st.caption(f"Held-out test patient · encounter {truth['encounter_id']} "
-               "(the model never trained on this row)")
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("**Model prediction**")
-        st.markdown(f"{'⚑ FLAG' if flag else 'No flag'} · {prob * 100:.1f}%")
-    with c2:
-        st.markdown("**Actual outcome**")
-        st.markdown(f"{'WAS' if was else 'was NOT'} readmitted within 30 days")
-    st.markdown(f"<div class='verdict' style='color:{tone}'>{mark} {kind}</div>",
-                unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.caption(f"Held-out test patient · encounter {truth['encounter_id']} "
+                   "(the model never trained on this row)")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**Model prediction**")
+            st.markdown(f"{'⚑ FLAG' if flag else 'No flag'} · {prob * 100:.1f}%")
+        with c2:
+            st.markdown("**Actual outcome**")
+            st.markdown(f"{'WAS' if was else 'was NOT'} readmitted within 30 days")
+        st.markdown(f"<div class='verdict' style='color:{tone}'>{mark} {kind}</div>",
+                    unsafe_allow_html=True)
 
 
 def render_results():
@@ -302,24 +301,23 @@ def render_results():
     prob, threshold, flag = res["readmission_probability"], res["threshold"], res["flag"]
     label, color = _band(prob, threshold)
 
-    st.markdown("<div class='riskcard'>", unsafe_allow_html=True)
-    c1, c2 = st.columns([1, 1])
-    with c1:
-        st.metric("30-day readmission risk", f"{prob * 100:.1f}%")
-    with c2:
-        st.markdown(f"<div class='band' style='background:{color}'>{label} RISK</div>",
-                    unsafe_allow_html=True)
-    st.caption("Risk bands (Low / Moderate / High) are an illustrative reading aid — "
-               "the model output is the probability above.")
-    if flag:
-        st.markdown("<div class='flag flagon'>⚑ FLAG for 30-day follow-up</div>",
-                    unsafe_allow_html=True)
-    else:
-        st.markdown("<div class='flag flagoff'>No flag — routine discharge</div>",
-                    unsafe_allow_html=True)
-    st.caption(f"Decision rule (applied by the API, shown for transparency): flag when "
-               f"probability ≥ **{threshold:.4f}**. This patient: {prob:.4f}.")
-    st.markdown("</div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        c1, c2 = st.columns([1, 1])
+        with c1:
+            st.metric("30-day readmission risk", f"{prob * 100:.1f}%")
+        with c2:
+            st.markdown(f"<div class='band' style='background:{color}'>{label} RISK</div>",
+                        unsafe_allow_html=True)
+        st.caption("Risk bands (Low / Moderate / High) are an illustrative reading aid — "
+                   "the model output is the probability above.")
+        if flag:
+            st.markdown("<div class='flag flagon'>⚑ FLAG for 30-day follow-up</div>",
+                        unsafe_allow_html=True)
+        else:
+            st.markdown("<div class='flag flagoff'>No flag — routine discharge</div>",
+                        unsafe_allow_html=True)
+        st.caption(f"Decision rule (applied by the API, shown for transparency): flag when "
+                   f"probability ≥ **{threshold:.4f}**. This patient: {prob:.4f}.")
 
     st.markdown("##### Top contributing factors")
     st.altair_chart(factor_chart(res["top_factors"]), width="stretch")
@@ -341,10 +339,6 @@ def main():
           .block-container {padding-top: 1.4rem;}
           .beta {background:#fff4e5; border:1px solid #f0c890; color:#8a5a00;
                  border-radius:8px; padding:.6rem .9rem; margin-bottom:1rem; font-size:.92rem;}
-          .riskcard {background:#f6f8fa; border:1px solid #e3e8ee; border-radius:12px;
-                     padding:1.1rem 1.3rem; margin-bottom:0.4rem;}
-          .truthcard {background:#fbfcfe; border:2px solid; border-radius:12px;
-                      padding:.9rem 1.1rem; margin-bottom:1rem;}
           .verdict {font-weight:700; font-size:1.02rem; margin-top:.6rem;}
           .band {color:white; text-align:center; font-weight:700; letter-spacing:.04em;
                  padding:.55rem; border-radius:8px; margin-top:1.1rem;}
