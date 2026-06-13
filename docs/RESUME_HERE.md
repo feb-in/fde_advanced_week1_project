@@ -6,8 +6,9 @@ remains is **verification + push**, not building. Read this + `CLAUDE.md` §0.5.
 ## Status: all stages complete — final-submission state
 
 Stages 1–7 ✅ (data → model → calibration/threshold → serving → CI/CD→ECR →
-observability → governance), plus a demo UI. One open pre-submission item: **clean-checkout
-reproducibility + DVC remote** (below). Optional: AWS Fargate live deploy.
+observability → governance), plus a demo UI; pushed to GitHub and a **DagsHub DVC remote**
+is configured (data pushed). One open pre-submission item: **verify clean-checkout
+reproducibility end-to-end** (below). Optional: AWS Fargate live deploy.
 
 ---
 
@@ -41,28 +42,28 @@ or the full stack `uv run python deploy/export_model.py && podman compose up --b
 
 ## ⬜ LEFT before submission
 
-1. **Push to GitHub.** ~25 commits (governance → observability → UI → this doc-sync) are
-   committed locally but **not pushed**. `git push origin main` (remote
-   `https://github.com/feb-in/fde_advanced_week1_project.git` is set).
+1. ✅ **Pushed to GitHub** — `main` is in sync with `origin/main`
+   (`https://github.com/feb-in/fde_advanced_week1_project.git`); CI runs on each push.
 2. **Verify clean-checkout reproducibility** — actually run the README path on a fresh
-   clone (see caveat below); fix anything that doesn't run end-to-end.
+   clone (see below); fix anything that doesn't run end-to-end.
 3. **(Optional)** AWS Fargate live deploy for a reachable URL — the ECR image already
    satisfies the deployable-artifact deliverable, so this is a nice-to-have.
 
-## ⚠ Reproducibility gap — read before a clean-clone review
+## Reproducibility — how a clean clone gets the data
 
-**There is NO DVC remote configured.** DVC-tracked data is **local-only**:
-`data/raw/diabetic_data.csv.dvc` and `data/monitoring/reference.parquet.dvc`. On a fresh
-clone, **`dvc pull` will fail** (no remote to pull from). A reviewer must either:
+A fresh clone can get the data two ways:
 
-- **(a) rebuild from source:** obtain the raw Kaggle CSV → place at
-  `data/raw/diabetic_data.csv` → `dvc repro` rebuilds `data/processed` + `data/featurized`
-  (and re-`uv run python src/monitoring/make_reference.py` for the drift reference); **or**
-- **(b) configure a DVC remote** (e.g. an S3/GDrive bucket), `dvc push`, and update the
-  README so `dvc pull` works on a clean clone.
+- **(a) rebuild from source (primary, no credentials):** obtain the raw Kaggle CSV → place
+  at `data/raw/diabetic_data.csv` → `dvc repro` runs the full pipeline
+  (`validate_raw → clean → featurize → validate_processed → make_reference`) and
+  regenerates the processed/featurized parquets and the drift reference. **or**
+- **(b) pull from DagsHub (optional, needs auth):** a **DagsHub DVC remote** (`origin`) is
+  configured and the data is pushed, so `dvc pull -r origin` fetches it instead of
+  rebuilding. Needs DagsHub credentials (token lives in `.dvc/config.local`, gitignored) —
+  a reviewer without access uses path (a).
 
-The README Quickstart currently *assumes* `dvc pull` works — that line needs (b), or
-re-wording toward (a). **This end-to-end clean-checkout run has not been done yet.**
+The README documents both, with (a) as the default. **Still to do:** actually run path (a)
+end-to-end on a clean clone to confirm nothing breaks — that dry-run hasn't been done yet.
 
 ---
 
