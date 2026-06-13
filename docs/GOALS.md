@@ -28,10 +28,13 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 
 ---
 
-> **PROGRESS (current position):** Stages 1–4 ✅ complete. Stage 5 🔄 in progress —
-> local FastAPI + containerized API done and skew-verified; **AWS deploy + full
-> compose stack still pending.** Next: ECR push + GitHub Actions CI/CD → AWS Fargate,
-> then Stages 6–7. See `docs/RESUME_HERE.md`.
+> **PROGRESS (current position):** **Stages 1–7 ✅ complete.** Build + ship (CI/CD →
+> ECR green), governance (fairness audit, SHAP, audit log, model card, reflection),
+> and observability (real `/metrics`, compose stack, Grafana dashboard, 3 alert rules,
+> Evidently drift validated, retrain trigger) are all done; a thin-client Streamlit demo
+> UI is built. **Only remaining before submission: verify clean-checkout reproducibility
+> (no DVC remote — see below) and push to GitHub.** Optional: AWS Fargate live deploy.
+> See `docs/RESUME_HERE.md` (submission checklist).
 
 ## Stage 1 — Setup & Tooling ✅
 
@@ -138,9 +141,9 @@ all runs tracked in MLflow; best calibrated model registered.
 ## Stage 5 — Package & Deploy ✅ (CI/CD → ECR done; live Fargate deploy optional)
 
 > **Build + ship arc COMPLETE.** Image is built, test-gated, and pushed to **Amazon
-> ECR** by GitHub Actions on push to `main`. The remaining live **Fargate** deploy is
-> now OPTIONAL (the ECR image satisfies the deployable-artifact deliverable).
-> **Next graded work: Reflection → Governance (Stage 7) → Observability (Stage 6).**
+> ECR** by GitHub Actions on push to `main`. The full **compose stack (api + prometheus
+> + grafana) is now wired** (Stage 6). The remaining live **Fargate** deploy is OPTIONAL
+> (the ECR image satisfies the deployable-artifact deliverable).
 
 ### What we build
 FastAPI service + Podman container + compose stack on AWS or GCP.
@@ -155,11 +158,11 @@ FastAPI service + Podman container + compose stack on AWS or GCP.
 
 ### Definition of done
 - [x] `podman build -f deploy/Containerfile -t readmission-api .` succeeds (rootless).
-- [ ] `podman compose up` starts all services. *(api builds; prometheus/grafana/mlflow
-      scaffolded as commented placeholders → wired in Stage 6.)*
+- [x] `podman compose up` starts all services — api + prometheus + grafana wired
+      (Stage 6). *(optional standalone mlflow service left commented.)*
 - [x] `curl .../predict` returns a calibrated probability + top SHAP factors
       (container == local, exact: encounter 12522 → 0.074595).
-- [~] `/health` returns 200 ✅. `/metrics` scrapeable by Prometheus → Stage 6.
+- [x] `/health` returns 200; `/metrics` is real and scraped by Prometheus (target UP).
 - [x] Rollback plan documented (registry alias swap + pinned image tag) —
       `docs/THRESHOLD_DECISION.md` + `docs/SERVING.md`.
 - [x] **CI/CD → Amazon ECR** — GitHub Actions (`.github/workflows/ci.yml`) runs the
@@ -170,37 +173,46 @@ FastAPI service + Podman container + compose stack on AWS or GCP.
 
 ---
 
-## Stage 6 — Observability  ⏳ REMAINING (do AFTER governance — see priority order)
+## Stage 6 — Observability  ✅
 
 ### What we build
 Prometheus → Grafana dashboard + Evidently drift reports + concrete retrain
 trigger.
 
 ### Definition of done
-- [ ] Grafana dashboard shows latency, request rate, error rate, score
-      distribution.
-- [ ] Every prediction logged (request, response, model version, latency).
-- [ ] Evidently report generated; demonstrated firing on a shifted batch.
-- [ ] Retrain trigger documented with a concrete numeric threshold (e.g. PSI >
-      0.2 on top features, or PR-AUC on labeled feedback < X) — not a vibe.
+- [x] Grafana dashboard shows latency (p50/p95), request rate, error rate, total
+      predictions, status classes (`deploy/grafana/provisioning/dashboards/readmission.json`).
+      *(Score-distribution panel deferred — needs a prediction-score histogram in the
+      app, which would touch the slim serving image; noted in-dashboard.)*
+- [x] Every prediction logged — request, response, model version, latency
+      (`src/app/audit.py`, JSONL audit trail).
+- [x] Evidently report generated; **validated firing on a shifted batch** and silent on
+      a control (`src/monitoring/drift.py`, reference `data/monitoring/reference.parquet`).
+- [x] Retrain trigger with concrete numeric thresholds (`src/monitoring/retrain_trigger.py`:
+      dataset-drift share > 0.10 OR PSI > 0.20 on a top-SHAP feature OR new-data PR-AUC < 0.15).
+- [x] **≥1 alert** — 3 Prometheus rules (`deploy/alerts.yml`: APIDown / HighErrorRate /
+      HighP95Latency), loaded + evaluating.
 
 ---
 
-## Stage 7 — Governance  ◀ NEXT GRADED WORK (after the Reflection doc)
+## Stage 7 — Governance  ✅
 
 ### What we build
 Fairlearn fairness audit + SHAP explanations + audit logging + model card +
 reflection.
 
 ### Definition of done
-- [ ] Fairlearn `MetricFrame` computed across age, gender, race; subgroup
-      recall/PR-AUC gaps reported; mitigation stance stated.
-- [ ] Global SHAP summary plot logged to MLflow; local SHAP returned by `/predict`.
-- [ ] Audit log entry per scored request (request, latency, response, model
-      version), traceable.
-- [ ] `docs/MODEL_CARD.md` complete: intended use, data, performance, limits,
-      fairness findings, SMOTE rejection note.
-- [ ] Written rollback + retrain plan.
+- [x] Fairlearn `MetricFrame` across age, gender, race; subgroup recall/PR-AUC gaps
+      reported; mitigation stance stated (`src/governance/fairness.py`, `docs/FAIRNESS_AUDIT.md`).
+- [x] Global SHAP summary logged to MLflow (`src/governance/explain.py`); local SHAP
+      returned by `/predict`.
+- [x] Audit log entry per scored request — request, latency, response, model version,
+      traceable (`src/app/audit.py`).
+- [x] `docs/MODEL_CARD.md` complete: intended use, data, performance, limits, fairness
+      findings, SMOTE rejection note.
+- [x] Written rollback (registry alias swap — `docs/THRESHOLD_DECISION.md`/`SERVING.md`)
+      + retrain plan (`src/monitoring/retrain_trigger.py`, `docs/MONITORING.md`).
+- [x] `docs/REFLECTION.md` — trade-offs, production changes, model limits.
 
 ---
 
@@ -211,4 +223,13 @@ data → `uv run python src/models/train.py` retrains and logs to MLflow → `po
 compose up` starts the stack → `curl /predict` returns a calibrated score + top
 SHAP factors → Grafana shows live metrics → Evidently report generated → fairness
 audit and model card are readable → every scored request has an audit log entry —
-and a written rollback + retrain plan exists.
+and a written rollback + retrain plan exists. **All of these artifacts exist and run.**
+
+> **⚠ Reproducibility caveat (the one open pre-submission item):** there is **no DVC
+> remote configured**, so `dvc pull` fails on a fresh clone. The DVC-tracked raw CSV
+> (`data/raw/diabetic_data.csv.dvc`) and reference parquet
+> (`data/monitoring/reference.parquet.dvc`) are **local-only**. A clean-clone reviewer
+> must either (a) obtain the raw Kaggle CSV, place it at `data/raw/diabetic_data.csv`,
+> and run `dvc repro` to rebuild everything, or (b) we configure + push a DVC remote
+> before submission. The README path has **not yet been run end-to-end on a clean
+> checkout** — that verification is the last to-do. See `docs/RESUME_HERE.md`.

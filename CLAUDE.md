@@ -28,37 +28,50 @@ class philosophy).
 
 ## 0.5 CURRENT STATE & NEXT STEP  ← read this first every session
 
-**Status: the BUILD + SHIP arc is COMPLETE.** Data cleaned + Great-Expectations
-validated; **CatBoost v1 calibrated (sigmoid) + registered `readmission-catboost-
-calibrated` @ `staging`**, operating threshold **0.091046** (in the model-version
-tag); **skew-free FastAPI** (`/predict` returns calibrated risk + flag + top SHAP
-factors, `/health`, `/metrics` stub) — golden encounter **12522 → 0.074595**
-identically in training, local API, and container; **slim 943 MB baked container**;
-**CI/CD via GitHub Actions is GREEN** — a test-gated pipeline that pushes the image
-to **Amazon ECR** on push to `main`.
-- LR kept as the explainable baseline. Model is **BAKED into the image**
-  (`deploy/export_model.py` → `deploy/model_bundle/`, tracked in git) because the
-  MLflow registry stores absolute host paths that don't resolve in-container; the
-  **registry alias stays the logical rollback handle** (`src/app/model.py` dual-load).
-- Image is slim serving-only deps (`deploy/requirements-serve.txt`, multi-stage,
-  `mlflow-skinny`). Container build: **Podman** (rootless) locally / **Docker** in CI.
-- CI (`.github/workflows/ci.yml`): Tier-1 schema tests on the runner → build image →
-  run the container + model-dependent tests against it over HTTP → push to ECR
-  (SHA + `latest`) only on green + only on push to `main`. The **skew test is the
-  must-not-break invariant**; bake-in is what lets a **stateless** runner reproduce
-  the container with no registry access.
+**Status: ALL graded arcs are COMPLETE — the project is in final-submission state.**
+The remaining work is verification + push, not building. See `docs/RESUME_HERE.md`
+(now a **submission checklist**).
 
-**EXACT next work, in grade-priority order (do NOT skip):**
-1. **Reflection doc** — `docs/REFLECTION.md` (lifecycle lessons; highest grade-value).
-2. **Governance (Stage 7)** — Fairlearn fairness audit across age/gender/race; SHAP
-   global + local; audit logging per scored request; `docs/MODEL_CARD.md`; MLflow
-   lineage/versioning; human-in-the-loop policy.
-3. **Observability (Stage 6)** — Prometheus + Grafana, prediction logging, Evidently
-   drift, ≥1 alert, a concrete numeric retrain trigger.
-4. **OPTIONAL** — Fargate live deploy (the ECR image already satisfies the
-   deployable-artifact deliverable), a Streamlit UI.
+**BUILD + SHIP (done):** data cleaned + Great-Expectations validated; **CatBoost v1
+calibrated (sigmoid) + registered `readmission-catboost-calibrated` @ `staging`**,
+operating threshold **0.091046** (model-version tag); **skew-free FastAPI** (`/predict`
+returns calibrated risk + flag + top SHAP factors, `/health`, real `/metrics`) — golden
+encounter **12522 → 0.074595** identically in training, local API, and container; **slim
+943 MB baked container**; **CI/CD via GitHub Actions is GREEN** → pushes the image to
+**Amazon ECR** on push to `main`. LR kept as the explainable baseline. Model **BAKED into
+the image** (`deploy/model_bundle/`, git-tracked); the **registry alias is the logical
+rollback handle** (`src/app/model.py` dual-load).
 
-**See `docs/RESUME_HERE.md` for the full resume brief + open items.**
+**GOVERNANCE / Stage 7 (done):** Fairlearn fairness audit across age/gender/race
+(`src/governance/fairness.py`, `docs/FAIRNESS_AUDIT.md` — age recall gap 0.69, gender
+fair, race inconclusive on small cells); **global SHAP** (`src/governance/explain.py` →
+MLflow + `reports/governance/`) + the local per-request SHAP the API returns;
+**per-request audit log** (`src/app/audit.py`, JSONL); `docs/MODEL_CARD.md` (real
+numbers + fairness + lineage + human-in-the-loop); `docs/REFLECTION.md`.
+
+**OBSERVABILITY / Stage 6 (done):** real Prometheus `/metrics`
+(`prometheus-fastapi-instrumentator`); **compose stack** api + prometheus + grafana
+(`compose.yaml`); **Grafana dashboard provisioned** (`deploy/grafana/provisioning/
+dashboards/readmission.json` — req rate, p50/p95 latency, error rate, total predictions,
+status classes); **3 Prometheus alert rules** (`deploy/alerts.yml` — APIDown /
+HighErrorRate / HighP95Latency); **Evidently drift detector validated**
+(`src/monitoring/drift.py`, reference `data/monitoring/reference.parquet`); **concrete
+retrain trigger** (`src/monitoring/retrain_trigger.py` — share>0.10 OR PSI>0.20 on a
+top-SHAP feature OR new-data PR-AUC<0.15).
+
+**DEMO UI (done):** thin-client Streamlit (`src/ui/`, `ui` dep group, NOT in the serving
+image) — `/predict` form from the contract, **load random held-out patient** (truth vs
+prediction with ✓/✗), BETA banner. UI score == direct `/predict` (no skew).
+
+**THE ONE REMAINING GAP (pre-submission):**
+- **Clean-checkout reproducibility is unverified, and there is NO DVC remote.** DVC-tracked
+  data (`data/raw/diabetic_data.csv`, `data/monitoring/reference.parquet`) is **local-only**
+  — `dvc pull` will fail on a fresh clone. A reviewer must obtain the raw Kaggle CSV and run
+  `dvc repro`, OR a DVC remote must be configured + pushed. The README path needs an
+  end-to-end clean-checkout run to confirm. **(OPTIONAL: Fargate live deploy — the ECR
+  image already satisfies the deployable-artifact deliverable.)**
+
+**See `docs/RESUME_HERE.md` for the submission checklist (done vs left + view commands).**
 
 ---
 

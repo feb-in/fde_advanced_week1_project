@@ -1,95 +1,82 @@
-# RESUME HERE — start-of-session brief
+# RESUME HERE — Submission Checklist
 
-*Single source for picking this project back up with zero context loss. Read this +
-`CLAUDE.md` §0.5 and you're current.*
+*Single source for the final stretch. Everything graded is built and verified; what
+remains is **verification + push**, not building. Read this + `CLAUDE.md` §0.5.*
 
-## Where we are (one paragraph)
+## Status: all stages complete — final-submission state
 
-The **build + ship arc is complete**. A reproducible DVC pipeline cleans the data and
-gates it with Great Expectations; **CatBoost** is tuned, **calibrated (sigmoid)**, and
-registered as `readmission-catboost-calibrated` **@ `staging`** with operating
-threshold **0.091046** in the version tag (logistic regression kept as the explainable
-baseline). A **skew-free FastAPI** service (`src/app/`) serves `/predict` (calibrated
-risk + flag + top SHAP factors), `/health`, and a `/metrics` stub — the golden
-encounter **12522 scores 0.074595** identically in training, the local API, and the
-container. The service is packaged as a **slim 943 MB container** with the model
-**baked in** (`deploy/model_bundle/`, tracked in git), and **CI/CD via GitHub Actions
-is GREEN**: a test-gated pipeline that, on push to `main`, runs the schema tests,
-builds the image, tests the running container over HTTP, and **pushes to Amazon ECR**
-(git SHA + `latest`) only when everything passes.
+Stages 1–7 ✅ (data → model → calibration/threshold → serving → CI/CD→ECR →
+observability → governance), plus a demo UI. One open pre-submission item: **clean-checkout
+reproducibility + DVC remote** (below). Optional: AWS Fargate live deploy.
 
-## Exact next action (grade-priority order)
+---
 
-1. **Reflection doc first** — `docs/REFLECTION.md`. Highest grade-value, low effort:
-   the lifecycle story (framing → data discipline → modeling → calibration/threshold →
-   serving/skew → containerize → CI/CD), what went wrong and what you'd do differently.
-2. **Governance (Stage 7)** — Fairlearn `MetricFrame` across **age / gender / race**
-   (subgroup recall / PR-AUC gaps + mitigation stance); SHAP global summary + the local
-   per-prediction factors the API already returns; **audit logging** per scored request
-   (request, response, model version, latency); `docs/MODEL_CARD.md`; MLflow
-   lineage/versioning; a **human-in-the-loop** policy for low-confidence cases.
-3. **Observability (Stage 6)** — Prometheus scraping `/metrics` + Grafana dashboards;
-   prediction logging; an Evidently drift report demonstrated firing on a shifted
-   batch; **≥1 alert**; a **concrete numeric retrain trigger** (e.g. PSI > 0.2 on top
-   features, or labelled-feedback PR-AUC < X).
-4. **OPTIONAL** — Fargate live deploy (the ECR image already satisfies the
-   deployable-artifact deliverable); a Streamlit UI over `/predict`.
+## ✅ DONE — and how to view each artifact
 
-Do them in this order — Reflection + Governance are where the remaining grade lives.
+Bring the API up first (most demos need it): either
+`uv run uvicorn src.app.app:app --port 8000` (loads model from the MLflow registry),
+or the full stack `uv run python deploy/export_model.py && podman compose up --build -d`
+(api + prometheus + grafana; baked model).
 
-## Open items for the model card / reflection to capture
+| Deliverable | Status | View it |
+|---|---|---|
+| **Reproducible data pipeline** | ✅ | `dvc repro` (validate_raw → clean → featurize → validate_processed) — *needs raw CSV, see caveat* |
+| **Experiment tracking (MLflow)** | ✅ | `mlflow ui --backend-store-uri sqlite:///mlflow.db` → http://localhost:5000 (runs, calibration, registry `readmission-catboost-calibrated` v1 @ staging) |
+| **Calibrated model + threshold** | ✅ | `docs/MODEL_COMPARISON.md`, `docs/THRESHOLD_DECISION.md` (thr 0.091046, recall ~0.51 / precision 0.154) |
+| **API `/predict` + SHAP + `/health` + `/metrics`** | ✅ | `curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' --data-binary @tests/sample_request.json` → `0.074595` |
+| **Container + CI/CD → Amazon ECR** | ✅ | `.github/workflows/ci.yml` (green on push to `main`); `podman build -f deploy/Containerfile -t readmission-api .` |
+| **Audit log (per request)** | ✅ | hit `/predict`, then `tail -1 logs/audit/predictions.jsonl` (request_id, model lineage, inputs, score, latency) |
+| **Fairness audit** | ✅ | `uv run python src/governance/fairness.py`; `docs/FAIRNESS_AUDIT.md` (age recall gap 0.69; gender fair; race inconclusive) |
+| **Global + local SHAP** | ✅ | `uv run python src/governance/explain.py` → `reports/governance/shap_*.png` + MLflow run `shap_global`; local factors in every `/predict` |
+| **Model card** | ✅ | `docs/MODEL_CARD.md` (intended use, 1999–2008 data, real metrics, limits, fairness, lineage, human-in-the-loop, SMOTE rejection) |
+| **Reflection** | ✅ | `docs/REFLECTION.md` |
+| **Prometheus + Grafana stack** | ✅ | `podman compose up -d` → Grafana http://localhost:3000 (admin/admin), dashboard *"Readmission API — Observability"*; Prometheus http://localhost:9090 (Targets UP, Status→Rules = 3 alerts) |
+| **Drift detection (Evidently)** | ✅ | `uv run python src/monitoring/drift.py` → `reports/monitoring/drift_{control,shifted}.html` + `drift_summary.json` (control silent, shifted fires) |
+| **Retrain trigger** | ✅ | `uv run python src/monitoring/retrain_trigger.py` (control→keep, shifted→RETRAIN; share>0.10 OR PSI>0.20 OR PR-AUC<0.15) |
+| **≥1 alert rule** | ✅ | `deploy/alerts.yml` — APIDown / HighErrorRate / HighP95Latency (`curl localhost:9090/api/v1/rules`) |
+| **Demo UI** | ✅ | `READMISSION_API_URL=http://localhost:8000 uv run --group ui streamlit run src/ui/app_streamlit.py` → http://localhost:8501 (form + **load random held-out patient** truth-vs-prediction + BETA banner) |
+| **Test suite** | ✅ | `uv run pytest tests/ -q` (28 pass incl. the train/serve-skew invariant) |
 
-- **SHAP magnitudes are pre-calibration log-odds.** The `/predict` `top_factors`
-  contributions come from the base CatBoost learner's margin, not the calibrated
-  probability — **directions are valid**, magnitudes are pre-calibration. State this.
-- **Threshold 0.091046 flags ~30% of discharges at recall ~0.5.** A documented
-  dial-down exists (recall ~0.40 → ~22% flagged) in `docs/THRESHOLD_DECISION.md`.
-- **The single GLOBAL threshold must be revisited per-subgroup** in the fairness audit —
-  one cutoff can land very differently across age / gender / race.
-- **CI IAM uses a managed ECR PowerUser policy.** Note **least-privilege + OIDC
-  (keyless)** as the production hardening (vs the static access-key the workflow uses).
-- **`requirements.txt`** is a human-readable mirror that has drifted from `pyproject.toml`
-  + `uv.lock` (the authoritative source). Regenerate or drop it — not blocking.
+---
 
-## The invariant to re-verify BEFORE building anything
+## ⬜ LEFT before submission
+
+1. **Push to GitHub.** ~25 commits (governance → observability → UI → this doc-sync) are
+   committed locally but **not pushed**. `git push origin main` (remote
+   `https://github.com/feb-in/fde_advanced_week1_project.git` is set).
+2. **Verify clean-checkout reproducibility** — actually run the README path on a fresh
+   clone (see caveat below); fix anything that doesn't run end-to-end.
+3. **(Optional)** AWS Fargate live deploy for a reachable URL — the ECR image already
+   satisfies the deployable-artifact deliverable, so this is a nice-to-have.
+
+## ⚠ Reproducibility gap — read before a clean-clone review
+
+**There is NO DVC remote configured.** DVC-tracked data is **local-only**:
+`data/raw/diabetic_data.csv.dvc` and `data/monitoring/reference.parquet.dvc`. On a fresh
+clone, **`dvc pull` will fail** (no remote to pull from). A reviewer must either:
+
+- **(a) rebuild from source:** obtain the raw Kaggle CSV → place at
+  `data/raw/diabetic_data.csv` → `dvc repro` rebuilds `data/processed` + `data/featurized`
+  (and re-`uv run python src/monitoring/make_reference.py` for the drift reference); **or**
+- **(b) configure a DVC remote** (e.g. an S3/GDrive bucket), `dvc push`, and update the
+  README so `dvc pull` works on a clean clone.
+
+The README Quickstart currently *assumes* `dvc pull` works — that line needs (b), or
+re-wording toward (a). **This end-to-end clean-checkout run has not been done yet.**
+
+---
+
+## Invariants to re-verify before any change
 
 ```bash
-uv run pytest tests/ -q          # full suite (container tier skips without a server)
+uv run pytest tests/ -q     # 28 pass; the skew test is the must-not-break invariant
 ```
-And the golden artifact check — container `/predict` for encounter 12522 must return
-**0.074595** with the model loaded `@ staging`. If either breaks, stop and fix first.
-
-## Get running again (exact commands)
-
-```bash
-# 0. (governance/observability work needs the registry) start MLflow locally
-mlflow server --backend-store-uri sqlite:///mlflow.db \
-  --default-artifact-root ./mlruns --host 0.0.0.0 --port 5000   # or just use sqlite:/// directly
-
-# 1. re-verify the invariant
-uv run pytest tests/ -q
-
-# 2. (re)bake the @staging model + build the slim image (rootless Podman)
-uv run python deploy/export_model.py
-podman build -f deploy/Containerfile -t readmission-api:latest .
-
-# 3. run the container (model baked in, NO mounts) and hit it
-podman rm -f rapi 2>/dev/null
-podman run -d --name rapi -p 8000:8000 readmission-api:latest
-curl -s localhost:8000/health        # → v1 @ staging, threshold 0.091046, load_source=baked-bundle
-curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' \
-     --data-binary @tests/sample_request.json    # → readmission_probability 0.074595
-
-# 4. trigger CI: commit + push to main → GitHub Actions tests, builds, pushes to ECR on green
-git push origin main
-```
-
-Local dev API (no container) loads from the registry by alias automatically:
-`uv run uvicorn src.app.app:app --port 8000`.
+Golden: container/local `/predict` for encounter 12522 must return **0.074595**
+(`@ staging`, threshold 0.091046). If either breaks, stop and fix first.
 
 ## Key references
-- `CLAUDE.md` §0.5 — current state + hard rules. `docs/GOALS.md` — staged plan (ticked).
-- `.github/workflows/ci.yml` — the test-gated ECR pipeline (4 GitHub Secrets required:
-  `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `ECR_REPOSITORY`).
-- `docs/SERVING.md` — API + rejection policy. `docs/THRESHOLD_DECISION.md` — 0.091 + rollback.
-- `docs/DATA_VALIDATION.md` — GX suites. `docs/MODEL_COMPARISON.md` — LR vs CatBoost verdict.
+- `CLAUDE.md` §0.5 — current state. `docs/GOALS.md` — staged plan (all ticked).
+- `docs/SERVING.md` — API + stack + UI. `docs/MONITORING.md` — drift + retrain trigger.
+- `docs/MODEL_CARD.md`, `docs/FAIRNESS_AUDIT.md`, `docs/REFLECTION.md` — governance.
+- `.github/workflows/ci.yml` — ECR pipeline (4 GitHub Secrets: `AWS_ACCESS_KEY_ID`,
+  `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `ECR_REPOSITORY`).
