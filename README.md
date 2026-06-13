@@ -117,19 +117,20 @@ Stop the stack with `podman compose down`.
 
 ## Screenshots / Evidence
 
-*Static proof the surfaces above actually run. Drop the PNGs into `docs/screenshots/`
-(filenames below) to render them.*
+*Static proof the surfaces above actually run.*
 
 ### Decision-support UI — truth vs prediction
-![Streamlit UI: a held-out patient's model risk + follow-up flag beside the true 30-day outcome, marked ✓/✗](docs/screenshots/ui-truth-vs-prediction.png)
+![Streamlit UI (dark): a held-out patient's model risk + follow-up flag beside the true 30-day outcome, marked ✓/✗](docs/screenshots/ui-truth-vs-prediction.png)
 The thin-client UI scoring a real **held-out-test** patient (one the model never trained
 on): calibrated risk, the follow-up flag, top SHAP factors, and the model's call checked
-against the actual 30-day outcome — right *and* wrong calls shown openly.
+against the actual 30-day outcome — here a ✓ true negative; right *and* wrong calls are
+shown openly.
 
-### Grafana dashboard — live service metrics
-![Grafana dashboard panels: request rate, p50/p95 latency, 5xx error rate, total predictions](docs/screenshots/grafana-dashboard.png)
-The provisioned *"Readmission API — Observability"* dashboard reading real Prometheus
-metrics: request rate by handler, p50/p95 latency, 5xx error rate, and predictions served.
+### Experiment tracking — MLflow
+![MLflow Runs view: CatBoost experiment runs with PR-AUC / ROC-AUC metric charts](docs/screenshots/mlflow-experiments.png)
+The MLflow UI for the `readmission-30d` experiment — every model attempt logged with its
+metrics (PR-AUC, ROC-AUC, …) and artifacts, plus the registered calibrated model: a
+reproducible, inspectable experiment history rather than ad-hoc notebook runs.
 
 ### CI/CD — green pipeline
 ![Green GitHub Actions run: tests pass, image built and pushed to Amazon ECR](docs/screenshots/ci-green.png)
@@ -137,9 +138,14 @@ A green GitHub Actions run: schema tests → image build → container tests (go
 **0.074595**) → push to **Amazon ECR**. Every change is gated by the test suite.
 
 ### Drift detection — Evidently report
-![Evidently data-drift report: a shifted batch flagged against the training reference](docs/screenshots/evidently-drift.png)
-The Evidently report for the deliberately **shifted** batch — dataset drift detected, the
-shifted features and the prediction flagged — while the unshifted **control** stays silent.
+![Evidently data-drift summary comparing a batch against the training reference](docs/screenshots/evidently-drift.png)
+An Evidently data-drift report (`src/monitoring/drift.py`). Shown here on the
+**in-distribution control batch** — the detector correctly reports **no drift** (0 of 55
+columns), proving it doesn't cry wolf; on the deliberately **shifted** batch it fires
+(dataset drift detected). Both reports: `reports/monitoring/drift_{control,shifted}.html`.
+
+> *A Grafana dashboard screenshot (`grafana-dashboard.png`) can be added here too — the
+> dashboard is provisioned in `deploy/grafana/`; bring the stack up and snap it.*
 
 ## Status — all stages complete
 - ✅ **Stages 1–4** — env/DVC, reproducible cleaning + GX validation, deterministic
