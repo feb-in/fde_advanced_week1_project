@@ -1,0 +1,14 @@
+# Dashboard provider — Grafana scans this path for *.json dashboards on startup, so the
+# readmission dashboard loads with no manual import.
+apiVersion: 1
+
+providers:
+  - name: readmission
+    orgId: 1
+    folder: ""
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false
