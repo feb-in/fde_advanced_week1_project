@@ -138,11 +138,12 @@ A green GitHub Actions run: schema tests → image build → container tests (go
 **0.074595**) → push to **Amazon ECR**. Every change is gated by the test suite.
 
 ### Drift detection — Evidently report
-![Evidently data-drift summary comparing a batch against the training reference](docs/screenshots/evidently-drift.png)
-An Evidently data-drift report (`src/monitoring/drift.py`). Shown here on the
-**in-distribution control batch** — the detector correctly reports **no drift** (0 of 55
-columns), proving it doesn't cry wolf; on the deliberately **shifted** batch it fires
-(dataset drift detected). Both reports: `reports/monitoring/drift_{control,shifted}.html`.
+![Evidently data-drift report: dataset drift detected on the shifted batch — 8 of 55 columns](docs/screenshots/evidently-drift.png)
+An Evidently data-drift report (`src/monitoring/drift.py`) on the deliberately **shifted**
+batch — **dataset drift detected**, 8 of 55 columns (share 0.145): the shifted features
+(`number_inpatient`, `service_utilization`, `age_midpoint`, `diag_1_bucket`, …) **and the
+prediction** are flagged, while the in-distribution **control** batch stays silent. Both
+reports: `reports/monitoring/drift_{control,shifted}.html`.
 
 > *A Grafana dashboard screenshot (`grafana-dashboard.png`) can be added here too — the
 > dashboard is provisioned in `deploy/grafana/`; bring the stack up and snap it.*
