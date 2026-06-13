@@ -1,4 +1,4 @@
-artifact_path: /home/febin/projects/fde/advanced_project_week1/readmission-starter/mlruns/1/models/m-ab1f8f2f4fb54a82875e6cbbb16ac15c/artifacts
+artifact_path: mlruns/1/models/m-ab1f8f2f4fb54a82875e6cbbb16ac15c/artifacts
 flavors:
   python_function:
     code: code

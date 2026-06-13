@@ -42,6 +42,8 @@ env/
 .env
 kaggle.json
 *.key
+*.pem
+*.p12
 
 # --- local scratch / offline docs (not part of the repo) ---
 # reference/ is an offline wget mirror of mlflow.org docs (~11 MB) — local only.
