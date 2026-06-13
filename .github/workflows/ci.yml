@@ -1,0 +1,101 @@
+name: CI — test, build, push to ECR
+
+# Merge gate + image publish for the readmission API.
+#
+# WHY BAKE-IN MAKES THIS WORK ON A STATELESS RUNNER:
+# The model is baked into the image at build time (deploy/model_bundle/ is committed
+# and COPYd by deploy/Containerfile). A GitHub Actions runner has NO mlflow.db / mlruns
+# and is given NO registry access — exactly why a runtime registry mount can't work and
+# baking does. The runner therefore never needs the MLflow registry: it builds the image
+# (which carries the model) and tests the BUILT CONTAINER over HTTP.
+#
+# FLOW: Tier-1 schema tests on the runner (no model) → build image → run the container
+# and run the model-dependent tests against it → push to ECR ONLY if all of that is green
+# (and only on push to main; PRs are validated but never publish).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv + Python
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      # ---- Tier 1: schema/contract tests on the runner (no model, no data) ----
+      - name: Tier 1 — schema/contract tests
+        run: |
+          uv venv
+          uv pip install pydantic==2.13.4 pytest==9.0.3
+          .venv/bin/python -m pytest tests/test_tier1_schema.py -q
+
+      # ---- Build the image. The model bundle is baked in here; no registry access. ----
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (bakes the model bundle in)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./deploy/Containerfile
+          push: false
+          load: true
+          tags: readmission-api:ci
+
+      # ---- Model-dependent tests AGAINST the built container (proves the artifact) ----
+      - name: Start container
+        run: |
+          docker run -d --name rapi -p 8000:8000 readmission-api:ci
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:8000/health >/dev/null; then echo "container ready"; exit 0; fi
+            sleep 3
+          done
+          echo "::error::container /health never became ready"; docker logs rapi; exit 1
+
+      - name: Tier 2/3 — model-dependent tests vs the running container
+        env:
+          API_BASE_URL: http://localhost:8000
+        run: |
+          uv pip install httpx==0.28.1 pytest==9.0.3
+          .venv/bin/python -m pytest tests/test_container_smoke.py -q
+
+      - name: Container logs (on failure)
+        if: failure()
+        run: docker logs rapi || true
+
+      # ---- Push to Amazon ECR — ONLY on green, and ONLY on push to main (not PRs) ----
+      - name: Configure AWS credentials
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag & push image (git SHA + latest)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          SHA: ${{ github.sha }}
+        run: |
+          docker tag readmission-api:ci "$REGISTRY/$REPOSITORY:$SHA"
+          docker tag readmission-api:ci "$REGISTRY/$REPOSITORY:latest"
+          docker push "$REGISTRY/$REPOSITORY:$SHA"
+          docker push "$REGISTRY/$REPOSITORY:latest"
