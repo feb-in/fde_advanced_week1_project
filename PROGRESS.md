@@ -229,3 +229,29 @@ roll back to a previous version by flipping its status if needed.
 
 **Up next:** wrap the model in an API that returns a risk score plus the reasons behind
 it, then package it to run anywhere.
+
+---
+
+## Step — Turning the model into a service, then a container
+I wrapped the model in a small web service. You send it one patient's discharge
+details and it returns three things: the calibrated risk, a yes/no follow-up flag (is
+the risk above our chosen cutoff), and the top reasons behind that score in plain
+feature terms — what pushed this particular patient's risk up or down.
+
+The thing I was most careful about is the trap that quietly ruins ML systems:
+"train/serve skew" — where the live service prepares the data even slightly
+differently from how the model was trained, so it scores the same patient differently.
+I avoided it by making the service reuse the *exact same* preparation code as training,
+not a re-write. Then I proved it: the same patient scores identically — to the last
+digit — in training and through the live API. That exact-match check is now an
+automated test that must never break.
+
+Finally I packaged the whole thing into a container so it runs the same anywhere. The
+one wrinkle: the experiment-tracking store keeps file paths that only make sense on my
+machine, so instead of pointing the container at it, I bake the finished model directly
+into the image. The "which model is live" label still travels with it, so rolling back
+to a previous model stays simple. The container scores the same patient identically to
+the local version — the move into a container introduced no drift.
+
+**Up next:** push the image to the cloud and set up automated build-and-deploy, then
+add monitoring and the fairness/governance checks.

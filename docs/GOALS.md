@@ -28,7 +28,12 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 
 ---
 
-## Stage 1 — Setup & Tooling
+> **PROGRESS (current position):** Stages 1–4 ✅ complete. Stage 5 🔄 in progress —
+> local FastAPI + containerized API done and skew-verified; **AWS deploy + full
+> compose stack still pending.** Next: ECR push + GitHub Actions CI/CD → AWS Fargate,
+> then Stages 6–7. See `docs/RESUME_HERE.md`.
+
+## Stage 1 — Setup & Tooling ✅
 
 ### What we build
 - Environment: `uv` + `pyproject.toml`; all deps installed via `uv add`.
@@ -36,13 +41,13 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 - Repo structure matching `CLAUDE.md` section 3.
 
 ### Definition of done
-- [ ] `uv run python -c "import pandas, sklearn, catboost, mlflow, shap"` passes.
-- [ ] `data/raw/diabetic_data.csv.dvc` committed; actual CSV gitignored.
-- [ ] `dvc pull` on a fresh clone would restore the raw file.
+- [x] `uv run python -c "import pandas, sklearn, catboost, mlflow, shap"` passes.
+- [x] `data/raw/diabetic_data.csv.dvc` committed; actual CSV gitignored.
+- [x] `dvc pull` on a fresh clone would restore the raw file.
 
 ---
 
-## Stage 2 — Data Cleaning
+## Stage 2 — Data Cleaning ✅
 
 ### What we build
 `src/data/clean.py` — a single, re-runnable cleaning script that produces
@@ -60,19 +65,19 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 - Output: one typed parquet to `data/processed/`.
 
 ### Definition of done
-- [ ] `dvc repro` runs `clean.py` end-to-end with no errors.
-- [ ] Sanity report printed: ~70k rows, positive rate 0.09–0.11.
-- [ ] `df["patient_nbr"].is_unique` assertion passes (confirmed in script).
-- [ ] `data/processed/diabetes_clean.parquet.dvc` (or equivalent DVC out) committed.
-- [ ] Cleaning decisions logged in `docs/FEATURE_LOG.md`.
+- [x] `dvc repro` runs `clean.py` end-to-end with no errors.
+- [x] Sanity report printed: ~70k rows, positive rate 0.09–0.11.
+- [x] `df["patient_nbr"].is_unique` assertion passes (confirmed in script).
+- [x] `data/processed/diabetes_clean.parquet.dvc` (or equivalent DVC out) committed.
+- [x] Cleaning decisions logged in `docs/FEATURE_LOG.md`.
 
 ---
 
-## Stage 3 — Featurization
+## Stage 3 — Featurization ✅
 
 ### What we build
 `src/features/build_features.py` — reads the prepared parquet, adds engineered
-features, writes `data/features/diabetes_features.parquet`, DVC-tracked.
+features, writes `data/featurized/diabetes_features.parquet`, DVC-tracked.
 
 ### Key decisions (all locked — do not vary)
 - **ICD-9 bucketing:** Strack-9 scheme on `diag_1`/`diag_2`/`diag_3` only.
@@ -91,13 +96,13 @@ features, writes `data/features/diabetes_features.parquet`, DVC-tracked.
 - Every new feature → row in `docs/FEATURE_LOG.md`.
 
 ### Definition of done
-- [ ] `dvc repro` runs the feature stage end-to-end.
-- [ ] `docs/FEATURE_LOG.md` has an entry for every engineered feature.
-- [ ] No feature uses post-discharge information.
+- [x] `dvc repro` runs the feature stage end-to-end.
+- [x] `docs/FEATURE_LOG.md` has an entry for every engineered feature.
+- [x] No feature uses post-discharge information.
 
 ---
 
-## Stage 4 — Modeling
+## Stage 4 — Modeling ✅
 
 ### What we build
 `src/models/train.py` + `evaluate.py` — baseline LR → CatBoost + Optuna;
@@ -117,18 +122,20 @@ all runs tracked in MLflow; best calibrated model registered.
 - **Tuning stack:** DVC + MLflow + Optuna. No Ray Tune.
 
 ### Definition of done
-- [ ] MLflow experiment has at least one LR run and one CatBoost run.
-- [ ] Each run logs: all hyperparams, PR-AUC, ROC-AUC, recall@precision,
-      Brier score, calibration plot, PR curve, SHAP summary, chosen threshold.
-- [ ] Best calibrated model registered in MLflow Model Registry at `Staging`.
-- [ ] `docs/THRESHOLD_DECISION.md` written (threshold choice justified on
+- [x] MLflow experiment has at least one LR run and one CatBoost run.
+- [x] Each run logs: all hyperparams, PR-AUC, ROC-AUC, recall@precision,
+      Brier score, calibration plot, PR curve, chosen threshold.
+      *(Global SHAP summary plot → deferred to Stage 7 governance.)*
+- [x] Best calibrated model registered in MLflow Model Registry at `Staging`.
+- [x] `docs/THRESHOLD_DECISION.md` written (threshold choice justified on
       cost trade-off).
-- [ ] SMOTE documented as "considered and rejected" in the model card.
-- [ ] Test set touched exactly once; final metrics reported.
+- [~] SMOTE documented as "considered and rejected" — in `MODEL_COMPARISON.md`;
+      restate in `docs/MODEL_CARD.md` at Stage 7.
+- [x] Test set touched exactly once; final metrics reported.
 
 ---
 
-## Stage 5 — Package & Deploy
+## Stage 5 — Package & Deploy 🔄  ◀ WE ARE HERE
 
 ### What we build
 FastAPI service + Podman container + compose stack on AWS or GCP.
@@ -142,12 +149,15 @@ FastAPI service + Podman container + compose stack on AWS or GCP.
   image tag. Document exact commands.
 
 ### Definition of done
-- [ ] `podman build -f Containerfile -t readmission-api .` succeeds.
-- [ ] `podman compose up` starts all services.
-- [ ] `curl .../predict` with a sample payload returns a calibrated probability
-      + top SHAP factors.
-- [ ] `/health` returns 200. `/metrics` is scrapeable by Prometheus.
-- [ ] Rollback plan documented (MLflow stage swap + image tag).
+- [x] `podman build -f deploy/Containerfile -t readmission-api .` succeeds (rootless).
+- [ ] `podman compose up` starts all services. *(api builds; prometheus/grafana/mlflow
+      scaffolded as commented placeholders → wired in Stage 6.)*
+- [x] `curl .../predict` returns a calibrated probability + top SHAP factors
+      (container == local, exact: encounter 12522 → 0.074595).
+- [~] `/health` returns 200 ✅. `/metrics` scrapeable by Prometheus → Stage 6.
+- [x] Rollback plan documented (registry alias swap + pinned image tag) —
+      `docs/THRESHOLD_DECISION.md` + `docs/SERVING.md`.
+- [ ] **Deployed to AWS/GCP** — NOT done. Next: ECR + GitHub Actions CI/CD → Fargate.
 
 ---
 

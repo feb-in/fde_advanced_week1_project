@@ -26,6 +26,33 @@ class philosophy).
 
 ---
 
+## 0.5 CURRENT STATE & NEXT STEP  ← read this first every session
+
+**Status:** Done through **local FastAPI + containerized API**. Stages 1–5 (incl.
+data validation, modeling, tuning, calibration, serving, packaging) complete.
+- Lead model: **calibrated CatBoost, registered `readmission-catboost-calibrated`
+  v1 @ `staging`**, operating threshold **0.091** (in the model-version tag).
+  Sigmoid calibration. LR kept as the explainable baseline.
+- API (`src/app/`): `/predict` returns calibrated risk + flag + top SHAP factors,
+  `/health`, `/metrics` (stub). **Train/serve skew check is EXACT** — encounter
+  12522 → **0.074595** identically in the training pipeline, local API, and the
+  container.
+- Container: **Podman** (rootless, v4.9.3 here; Docker also present). The model is
+  **BAKED into the image** (`deploy/export_model.py` → `deploy/model_bundle/`),
+  because the MLflow registry stores absolute host paths that don't resolve
+  in-container. The **registry alias stays the logical rollback handle** (kept in
+  `src/app/model.py` dual-load code + bundle meta). Image ≈ 7.4 GB (full pinned
+  deps; a serving-only dep group would slim it — open item).
+
+**EXACT next gate (do NOT skip ahead):** **ECR push + GitHub Actions CI/CD →
+AWS Fargate deploy** → then **Stage 6 monitoring** (Prometheus/Grafana/Evidently)
+→ then **Stage 7 governance** (Fairlearn audit, SHAP, model card, audit logs) +
+reflection. CI must run `tests/test_smoke.py` as a merge gate (the skew test is the
+must-not-break invariant); bake-in is correct for CI because the runner is
+stateless. **See `docs/RESUME_HERE.md` for the full resume brief + open items.**
+
+---
+
 ## 1. Hard rules (do not violate these)
 
 These encode the graded traps. Breaking one silently costs marks. See
@@ -129,16 +156,27 @@ These encode the graded traps. Breaking one silently costs marks. See
 **Do not pre-scaffold empty folders.** Create a directory the moment the first
 real file that belongs in it is written.
 
-**What exists now:**
+**What exists now (Stages 1–5 built):**
 
 ```
 .
-├── CLAUDE.md · requirements.txt · pyproject.toml · .gitignore
-├── docs/        # PROJECT_BRIEF.md · GOALS.md · FEATURE_LOG.md
-├── data/raw/    # diabetic_data.csv (DVC-tracked, gitignored)
-├── data/processed/ # diabetes_clean.parquet (DVC-tracked, written by clean stage)
-├── dataset/     # original Kaggle download (CSV + data-dictionary PDF)
-└── EDA/         # exploratory data analysis: Streamlit dashboard + analysis engine
+├── CLAUDE.md · requirements.txt · pyproject.toml · uv.lock · .gitignore
+├── compose.yaml              # Podman/Docker compose (api; prom/grafana/mlflow scaffolded)
+├── dvc.yaml · dvc.lock       # validate_raw → clean → featurize → validate_processed
+├── docs/        # PROJECT_BRIEF · GOALS · FEATURE_LOG · MODEL_COMPARISON · THRESHOLD_DECISION
+│                # · DATA_VALIDATION · SERVING · RESUME_HERE
+├── data/{raw,processed,featurized}/   # DVC-tracked, gitignored
+├── dataset/     # original Kaggle download (gitignored)
+├── src/contracts/  # data_contract.py · input_contract.json  (the data contract)
+├── src/data/       # clean.py · validate.py (GX suites)
+├── src/features/   # build_features.py
+├── src/models/     # train.py · evaluate.py · tune.py · calibrate.py · wrappers.py
+├── src/app/        # app.py · schemas.py · model.py · featurize.py  (FastAPI serving)
+├── deploy/         # Containerfile · export_model.py  (prometheus.yml/grafana → Stage 6)
+├── tests/          # test_smoke.py (skew gate) · sample_request.json
+├── EDA/            # exploratory analysis (Streamlit + engine)
+├── mlruns/ · mlflow.db   # MLflow tracking + registry (gitignored)
+└── gx/             # Great Expectations project scratch (gitignored)
 ```
 
 **Where new code lands as you build it (create each on first use):**
@@ -151,7 +189,7 @@ src/models/      train.py · evaluate.py             # LR baseline + CatBoost + 
 src/app/         app.py · schemas.py                # FastAPI /predict (score + SHAP), /health  (NOTE: this is the serving folder — named src/app/, NOT src/serving/)
 src/monitoring/  drift.py · retrain_trigger.py      # Evidently report + numeric trigger
 src/governance/  fairness.py · explain.py           # Fairlearn MetricFrame + SHAP helpers
-deploy/          Containerfile · compose.yaml · prometheus.yml · grafana/
+deploy/          Containerfile · export_model.py · prometheus.yml · grafana/   (compose.yaml is at repo root)
 tests/           test_smoke.py
 docs/            FEATURE_LOG.md · MODEL_CARD.md · THRESHOLD_DECISION.md · DATA_VALIDATION.md
 notebooks/       exploration only — never the source of truth
