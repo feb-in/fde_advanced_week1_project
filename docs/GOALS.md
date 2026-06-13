@@ -233,8 +233,8 @@ model is committed in `deploy/model_bundle/` and the container serves it directl
 
 > **Reproducibility (verified):** the clean-checkout dry-run has been **done** — the
 > corrected build order lives in the README ("Reproducibility") and `docs/RESUME_HERE.md`.
-> A **DagsHub DVC remote (`origin`) is configured**, but `dvc pull -r origin` **requires
-> DagsHub authentication and is not guaranteed to work anonymously**, so the **primary,
+> A **DagsHub DVC remote (`origin`) is configured**, but `dvc pull -r origin` **currently
+> needs DagsHub auth — the DagsHub repo is private, so anonymous pull fails**. The **primary,
 > supported path is the raw-CSV rebuild**: place the Kaggle CSV at
 > `data/raw/diabetic_data.csv` → `dvc repro validate_processed` → `train.py` → `tune.py`
 > → `calibrate.py` (registers v1 @staging) → `dvc repro make_reference`.
