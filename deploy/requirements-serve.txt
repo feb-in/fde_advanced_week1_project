@@ -38,6 +38,8 @@ packaging==26.2
 pandas==2.3.3
 pillow==12.2.0
 plotly==5.24.1
+prometheus-client==0.25.0
+prometheus-fastapi-instrumentator==8.0.0
 protobuf==6.33.6
 pyasn1==0.6.3
 pyasn1-modules==0.4.2

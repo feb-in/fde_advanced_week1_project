@@ -5,7 +5,8 @@ Endpoints:
     contract-generated schema). Returns calibrated risk, the flag (prob >= the
     registry threshold), and the top signed SHAP contributing factors.
   * GET  /health  — liveness + the loaded model version/alias/threshold.
-  * GET  /metrics — Prometheus hook stub (Stage 6 wires real instrumentation).
+  * GET  /metrics — real Prometheus metrics (request count, latency histogram,
+    status codes → error rate) via prometheus-fastapi-instrumentator.
 
 The model is loaded once at startup from the MLflow registry by alias; rollback is
 a registry stage/alias swap, no redeploy.
@@ -21,7 +22,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import PlainTextResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo/src
 from app.audit import log_prediction  # noqa: E402
@@ -49,6 +50,12 @@ app = FastAPI(
     description="Calibrated readmission risk + top SHAP factors for one discharge.",
     lifespan=lifespan,
 )
+
+# Observability (Stage 6): instrument the app and expose real Prometheus metrics at
+# /metrics — default HTTP request count, latency histogram, and status-code labels
+# (error rate is derived from 5xx vs total). This replaces the Stage-5 stub and does
+# NOT touch the /predict request/response contract.
+Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 @app.post("/predict", response_model=PredictResponse)
@@ -78,10 +85,3 @@ def health() -> HealthResponse:
         calibration_method=p.calibration_method,
         load_source=p.load_source,
     )
-
-
-@app.get("/metrics", response_class=PlainTextResponse)
-def metrics() -> str:
-    # Prometheus hook — Stage 6 (observability) wires the instrumentator here.
-    return ("# HELP readmission_api Prometheus metrics are wired in Stage 6.\n"
-            "# Placeholder endpoint so the scrape target exists.\n")

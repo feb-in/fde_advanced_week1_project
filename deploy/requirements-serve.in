@@ -11,3 +11,5 @@ catboost==1.2.10
 shap==0.52.0
 pandas==2.3.3
 numpy==2.3.5
+# observability: real /metrics (request count, latency histogram, status codes)
+prometheus-fastapi-instrumentator==8.0.0
