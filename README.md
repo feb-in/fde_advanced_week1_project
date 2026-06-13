@@ -137,6 +137,13 @@ reproducible, inspectable experiment history rather than ad-hoc notebook runs.
 A green GitHub Actions run: schema tests → image build → container tests (golden score
 **0.074595**) → push to **Amazon ECR**. Every change is gated by the test suite.
 
+### Grafana dashboard — live service metrics
+![Grafana "Readmission API — Observability" dashboard: request rate, p50/p95 latency, total predictions, requests by status](docs/screenshots/grafana-dashboard.png)
+The provisioned *"Readmission API — Observability"* dashboard reading real Prometheus
+metrics: request rate by handler, p50/p95 latency, total predictions served (65 here),
+and requests/sec by status class. (The 5xx error-rate panel reads "No data" — there were
+no server errors.)
+
 ### Drift detection — Evidently report
 ![Evidently data-drift report: dataset drift detected on the shifted batch — 8 of 55 columns](docs/screenshots/evidently-drift.png)
 An Evidently data-drift report (`src/monitoring/drift.py`) on the deliberately **shifted**
@@ -144,9 +151,6 @@ batch — **dataset drift detected**, 8 of 55 columns (share 0.145): the shifted
 (`number_inpatient`, `service_utilization`, `age_midpoint`, `diag_1_bucket`, …) **and the
 prediction** are flagged, while the in-distribution **control** batch stays silent. Both
 reports: `reports/monitoring/drift_{control,shifted}.html`.
-
-> *A Grafana dashboard screenshot (`grafana-dashboard.png`) can be added here too — the
-> dashboard is provisioned in `deploy/grafana/`; bring the stack up and snap it.*
 
 ## Status — all stages complete
 - ✅ **Stages 1–4** — env/DVC, reproducible cleaning + GX validation, deterministic

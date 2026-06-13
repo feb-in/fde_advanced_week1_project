@@ -8,8 +8,6 @@ Images embedded by the root `README.md` "Screenshots / Evidence" section.
 | `mlflow-experiments.png` | MLflow Runs view for `readmission-30d` — runs + PR-AUC/ROC-AUC metric charts. | ✅ present |
 | `ci-green.png` | A green run of the **CI — test, build, push to ECR** workflow (all steps ✓). | ✅ present |
 | `evidently-drift.png` | An Evidently data-drift report — the **shifted** batch, dataset drift detected (8/55 columns). | ✅ present |
-| `grafana-dashboard.png` | The Grafana *"Readmission API — Observability"* dashboard with panels populated. | ⬜ optional, not yet added |
+| `grafana-dashboard.png` | The Grafana *"Readmission API — Observability"* dashboard with panels populated. | ✅ present |
 
-To add the Grafana shot: `podman compose up -d`, send a little `/predict` traffic, open
-`http://localhost:3000` (admin/admin), capture the dashboard, save as
-`grafana-dashboard.png` here, then uncomment/add its embed in the root README.
+All five evidence images are present and embedded in the root `README.md`.
