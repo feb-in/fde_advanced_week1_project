@@ -121,6 +121,13 @@ Stop the stack with `podman compose down`.
 
 *Static proof the surfaces above actually run.*
 
+### Reproducible data pipeline — DVC DAG
+![DVC pipeline graph: raw CSV → validate → clean → featurize → validate, with DVC-managed data and git-managed code](docs/screenshots/dvc-pipeline-dag.png)
+The DVC pipeline graph — the versioned data lineage from the raw CSV through validation,
+cleaning, and featurization. Blue nodes are DVC-managed data artifacts (raw CSV,
+processed/featurized parquets, drift reference), teal are the git-managed scripts; one
+`dvc repro` rebuilds the whole chain from the raw CSV.
+
 ### Decision-support UI — truth vs prediction
 ![Streamlit UI (dark): a held-out patient's model risk + follow-up flag beside the true 30-day outcome, marked ✓/✗](docs/screenshots/ui-truth-vs-prediction.png)
 The thin-client UI scoring a real **held-out-test** patient (one the model never trained
