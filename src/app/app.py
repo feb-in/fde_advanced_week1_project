@@ -16,6 +16,7 @@ Run:
 from __future__ import annotations
 
 import sys
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -23,6 +24,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo/src
+from app.audit import log_prediction  # noqa: E402
 from app.model import get_predictor  # noqa: E402
 from app.schemas import (  # noqa: E402
     HealthResponse,
@@ -53,7 +55,12 @@ app = FastAPI(
 def predict(record: PatientRecord) -> PredictResponse:
     predictor = _state["predictor"]
     # by_alias=True restores hyphenated raw column names for featurization.
-    result = predictor.predict(record.model_dump(by_alias=True))
+    inputs = record.model_dump(by_alias=True)
+    t0 = time.perf_counter()
+    result = predictor.predict(inputs)
+    latency_ms = (time.perf_counter() - t0) * 1000.0
+    # Audit trail: every scored request is logged (best-effort, never blocks scoring).
+    log_prediction(inputs=inputs, result=result, latency_ms=latency_ms, predictor=predictor)
     return PredictResponse(**result)
 
 

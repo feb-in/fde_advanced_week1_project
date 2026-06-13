@@ -38,6 +38,10 @@ env/
 .mypy_cache/
 .ruff_cache/
 
+# --- audit trail: runtime predictions log, contains clinical inputs (PHI-adjacent) ---
+# Never commit; production ships these to an access-controlled, append-only sink.
+logs/
+
 # --- secrets / config ---
 .env
 kaggle.json
