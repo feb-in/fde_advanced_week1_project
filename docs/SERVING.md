@@ -10,7 +10,7 @@ follow-up flag, and the top contributing factors for *that* patient. Code in
 |---|---|---|
 | POST | `/predict` | One patient's raw discharge-time fields → calibrated risk + flag + top SHAP factors |
 | GET | `/health` | Liveness + loaded model name/version/alias/threshold/calibration |
-| GET | `/metrics` | Prometheus hook **stub** — Stage 6 wires real instrumentation here |
+| GET | `/metrics` | **Real Prometheus metrics** — request count, latency histogram, status codes (error rate) via `prometheus-fastapi-instrumentator` |
 
 ### Run
 ```bash
@@ -92,6 +92,43 @@ discharge-time request is stricter:
 - `discharge_disposition_id ∈ {11,13,14,19,20,21}` (expired/hospice) — these patients
   structurally cannot be readmitted; training filtered them out.
 
+## Audit trail
+
+Every scored request is logged append-only (JSONL) by `src/app/audit.py`: a
+server-generated `request_id`, UTC timestamp, the model lineage
+(name/version/alias/threshold/calibration/`load_source`), the 44 validated raw inputs,
+the score + flag + top factors, and server latency. Best-effort — a logging failure is
+surfaced to stderr but never drops a prediction. Path is `AUDIT_LOG_PATH` (default
+`logs/audit/predictions.jsonl`, gitignored — entries hold clinical inputs). Production
+should ship these to an access-controlled, append-only, retention-governed sink.
+
+## Observability stack (Stage 6 — setup)
+
+`compose.yaml` brings up the **instrumented API + Prometheus + Grafana** together
+(Podman-compatible; bind mounts carry `:Z` for SELinux). Prometheus scrapes the API's
+real `/metrics`; Grafana auto-provisions the Prometheus datasource on startup.
+
+```bash
+uv run python deploy/export_model.py        # ensure the baked bundle exists
+podman compose up --build -d                 # start api + prometheus + grafana
+
+# (podman compose talks to the Podman API socket; if it errors with
+#  "podman.sock ... no such file", start it once:  systemctl --user start podman.socket)
+
+podman compose ps                            # all three Up
+podman compose down                          # tear the stack down
+```
+
+| Service | URL | Check |
+|---|---|---|
+| API | http://localhost:8000 | `/health`, `/predict`, `/metrics` |
+| Prometheus | http://localhost:9090 | Status → Targets: `readmission-api` = **UP** |
+| Grafana | http://localhost:3000 | login `admin` / `admin`; Prometheus datasource pre-wired |
+
+What's **set up** (this gate): real metrics emitting, Prometheus scraping the target,
+Grafana connected to Prometheus. What's **deferred** to the next gate: Grafana dashboard
+panels (latency, req/s, error rate, score distribution), an Evidently drift report, ≥1
+alert, and a concrete numeric retrain trigger.
+
 ## Deferred to later gates
-- Containerize under Podman (Stage 5 packaging).
-- Wire Prometheus/Grafana to `/metrics` + per-request audit logging (Stage 6).
+- Grafana dashboards + Evidently drift + alerting + retrain trigger (Stage 6, next session).
