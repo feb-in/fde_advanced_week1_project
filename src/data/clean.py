@@ -76,6 +76,24 @@ def load_raw(path: str | Path) -> pd.DataFrame:
 # Cleaning
 # ---------------------------------------------------------------------------
 
+def clean_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Column-level cleaning ONLY — no row filtering, no target, no dtype packing.
+
+    This is the exact slice of cleaning a single discharge record must also receive
+    at serving time, so it is factored out and reused by src/app/featurize.py.
+    Running the SAME code on a batch and on one row is how we prevent train/serve
+    skew: drop the dead/zero-variance columns, preserve "None" labs as the explicit
+    "NotMeasured" level, and fill informative-missing categoricals with "Unknown".
+    Columns absent at serving time (weight/examide/citoglipton) are dropped if present.
+    """
+    df = df.drop(columns=["weight"] + ZERO_VARIANCE_COLS, errors="ignore")
+    for c in LAB_COLS:
+        df[c] = df[c].where(df[c] != "None", "NotMeasured")
+    for c in MISSING_AS_UNKNOWN:
+        df[c] = df[c].fillna("Unknown")
+    return df
+
+
 def clean(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     """Apply the full cleaning pass. Returns (clean_df, report).
 
@@ -112,21 +130,9 @@ def clean(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     )
     report["rows_after_first_encounter_dedup"] = len(df)
 
-    # 4. Drop columns: dead weight (96.9% missing) and zero-variance drugs.
-    drop_cols = ["weight"] + [c for c in ZERO_VARIANCE_COLS if c in df.columns]
-    df = df.drop(columns=drop_cols)
-    report["cols_dropped"] = drop_cols
-
-    # 5. Lab columns: preserve "None" as an explicit "NotMeasured" category.
-    #    "None" in these columns is a real clinical fact (test was not ordered),
-    #    not a missing value.  It is already kept by keep_default_na=False;
-    #    we rename it here to be unambiguous.
-    for c in LAB_COLS:
-        df[c] = df[c].where(df[c] != "None", "NotMeasured")
-
-    # 6. High-missing categoricals: NaN → "Unknown" (missingness is informative).
-    for c in MISSING_AS_UNKNOWN:
-        df[c] = df[c].fillna("Unknown")
+    # 4-6. Column-level cleaning — shared verbatim with serving via clean_columns().
+    report["cols_dropped"] = ["weight"] + [c for c in ZERO_VARIANCE_COLS if c in df.columns]
+    df = clean_columns(df)
 
     # 7. Target: binary.  "<30" = readmitted within 30 days (positive).
     #    ">30" and "NO" both map to 0 — same care-team action (no urgent follow-up).

@@ -261,15 +261,28 @@ def add_demographic_features(df: pd.DataFrame) -> pd.DataFrame:
 # Orchestration
 # ---------------------------------------------------------------------------
 
-def build_features(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
-    """Apply every feature group in order. Returns (features_df, report)."""
-    report: dict = {"rows_in": len(df), "cols_in": df.shape[1]}
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """The deterministic feature transforms, in order — shared by batch and serving.
 
+    This is the SINGLE source of truth for Strack-9 bucketing, the A1c×med-change
+    interaction, service-utilization, drug ordinal-encoding, age, and admission/
+    discharge buckets. src/app/featurize.py calls this exact function on a one-row
+    frame so a served record is engineered identically to training (no skew).
+    Key/target columns (if present) pass through untouched.
+    """
     df = add_diagnosis_features(df)
     df = add_medication_features(df)
     df = add_lab_features(df)
     df = add_utilization_features(df)
     df = add_demographic_features(df)
+    return df
+
+
+def build_features(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    """Apply every feature group in order. Returns (features_df, report)."""
+    report: dict = {"rows_in": len(df), "cols_in": df.shape[1]}
+
+    df = engineer_features(df)
 
     # Column order: keys first, target last, everything else in between.
     feats = [c for c in df.columns if c not in KEY_COLS + [TARGET_COL]]
