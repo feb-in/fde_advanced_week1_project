@@ -1,0 +1,704 @@
+{
+  "reference": "data/monitoring/reference.parquet",
+  "drift_share_threshold": 0.1,
+  "current_n": 3000,
+  "score_means": {
+    "baseline": 0.0899,
+    "control": 0.0912,
+    "shifted": 0.1831
+  },
+  "intentional_shifts": {
+    "age_shift_years": 20,
+    "diag1_circulatory_frac": 0.4,
+    "inpatient_bump": 2,
+    "emergency_frac": 0.3,
+    "features_touched": [
+      "admission_type_grp",
+      "age_bucket",
+      "age_midpoint",
+      "diag_1_bucket",
+      "inpatient_ge_2",
+      "number_inpatient",
+      "service_utilization"
+    ]
+  },
+  "control": {
+    "overall": {
+      "drifted": 0,
+      "share": 0.0,
+      "dataset_drift": false
+    },
+    "columns": {
+      "time_in_hospital": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.011479121329478077,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "num_lab_procedures": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.017810662659367437,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "num_procedures": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.010946944889215134,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "num_medications": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.02838844228650645,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "number_outpatient": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.018502369670531843,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "number_emergency": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.018655207882083937,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "number_inpatient": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.03540914562503566,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "number_diagnoses": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.03174081801892368,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "metformin": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.004949858951936418,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "repaglinide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.00796190851262571,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "nateglinide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.008141004346690626,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "chlorpropamide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.006554517495889016,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glimepiride": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01214401685720731,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "acetohexamide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.002487985105785055,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glipizide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.005049897971822707,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glyburide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.011355101086526305,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "tolbutamide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0029904387910041717,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "pioglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.015412025080270661,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "rosiglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.02992731644130406,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "acarbose": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.011084384915090818,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "miglitol": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.007080789974127789,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "troglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0035185536127887137,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "tolazamide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0017291866686885966,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "insulin": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01898674733738128,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glyburide-metformin": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.009610408181186475,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glipizide-metformin": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.005520001991550867,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "metformin-rosiglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0035185536127887137,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "metformin-pioglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.002487985105785055,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diabetes_primary": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.013145146372642436,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "n_diabetes_diag": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01802953620239948,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "n_med_changes": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.018065798695891356,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "n_meds_used": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.02955651855090973,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "a1c_measured": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.008189813346826107,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glu_measured": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.005386200091518179,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "service_utilization": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.012307425985757075,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "inpatient_ge_2": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.010072931726995351,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "age_midpoint": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.026005630822987826,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "discharged_home": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0008460550358568859,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "prediction": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.02621788444720408,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "race": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01620446023968852,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "gender": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0014400620647426173,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "payer_code": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.02704439637223234,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "medical_specialty": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.05462350707622548,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "max_glu_serum": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01606795873950136,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "A1Cresult": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.009788397877602682,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "change": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.017056554143886217,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diabetesMed": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.008038292031468771,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diag_1_bucket": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.02475866687425373,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diag_2_bucket": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01796553830111166,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diag_3_bucket": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.022202959182056222,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "a1c_state": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.012311267420705388,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "age_bucket": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.014737694409563311,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "admission_type_grp": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.019605873168534325,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "admission_source_grp": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.015538581427973533,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "discharge_disposition_grp": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.013260023492624805,
+        "threshold": 0.1,
+        "drifted": false
+      }
+    }
+  },
+  "shifted": {
+    "overall": {
+      "drifted": 8,
+      "share": 0.14545454545454545,
+      "dataset_drift": true
+    },
+    "columns": {
+      "time_in_hospital": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.011479121329478077,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "num_lab_procedures": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.017810662659367437,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "num_procedures": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.010946944889215134,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "num_medications": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.02838844228650645,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "number_outpatient": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.018502369670531843,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "number_emergency": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.018655207882083937,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "number_inpatient": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 3.355419629197747,
+        "threshold": 0.1,
+        "drifted": true
+      },
+      "number_diagnoses": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.03174081801892368,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "metformin": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.004949858951936418,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "repaglinide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.00796190851262571,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "nateglinide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.008141004346690626,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "chlorpropamide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.006554517495889016,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glimepiride": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01214401685720731,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "acetohexamide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.002487985105785055,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glipizide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.005049897971822707,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glyburide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.011355101086526305,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "tolbutamide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0029904387910041717,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "pioglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.015412025080270661,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "rosiglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.02992731644130406,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "acarbose": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.011084384915090818,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "miglitol": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.007080789974127789,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "troglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0035185536127887137,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "tolazamide": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0017291866686885966,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "insulin": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01898674733738128,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glyburide-metformin": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.009610408181186475,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glipizide-metformin": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.005520001991550867,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "metformin-rosiglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0035185536127887137,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "metformin-pioglitazone": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.002487985105785055,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diabetes_primary": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.013145146372642436,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "n_diabetes_diag": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01802953620239948,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "n_med_changes": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.018065798695891356,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "n_meds_used": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 0.02955651855090973,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "a1c_measured": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.008189813346826107,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "glu_measured": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.005386200091518179,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "service_utilization": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 1.4313236255195618,
+        "threshold": 0.1,
+        "drifted": true
+      },
+      "inpatient_ge_2": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.7860527736343956,
+        "threshold": 0.1,
+        "drifted": true
+      },
+      "age_midpoint": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 1.1407479268429264,
+        "threshold": 0.1,
+        "drifted": true
+      },
+      "discharged_home": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0008460550358568859,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "prediction": {
+        "method": "Wasserstein distance (normed),threshold=0.1",
+        "score": 1.656364716324533,
+        "threshold": 0.1,
+        "drifted": true
+      },
+      "race": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01620446023968852,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "gender": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.0014400620647426173,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "payer_code": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.02704439637223234,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "medical_specialty": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.05462350707622548,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "max_glu_serum": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01606795873950136,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "A1Cresult": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.009788397877602682,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "change": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.017056554143886217,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diabetesMed": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.008038292031468771,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diag_1_bucket": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.20792339080474964,
+        "threshold": 0.1,
+        "drifted": true
+      },
+      "diag_2_bucket": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.01796553830111166,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "diag_3_bucket": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.022202959182056222,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "a1c_state": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.012311267420705388,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "age_bucket": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.2587245674490614,
+        "threshold": 0.1,
+        "drifted": true
+      },
+      "admission_type_grp": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.11843340431281278,
+        "threshold": 0.1,
+        "drifted": true
+      },
+      "admission_source_grp": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.015538581427973533,
+        "threshold": 0.1,
+        "drifted": false
+      },
+      "discharge_disposition_grp": {
+        "method": "Jensen-Shannon distance,threshold=0.1",
+        "score": 0.013260023492624805,
+        "threshold": 0.1,
+        "drifted": false
+      }
+    }
+  },
+  "detector_validation_pass": true
+}

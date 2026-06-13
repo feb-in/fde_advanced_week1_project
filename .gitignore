@@ -42,6 +42,10 @@ env/
 # Never commit; production ships these to an access-controlled, append-only sink.
 logs/
 
+# --- Evidently drift reports: heavy (~6 MB each) regenerable HTML. Keep the small
+#     committed drift_summary.json as the durable record; regenerate HTML on demand. ---
+reports/monitoring/*.html
+
 # --- secrets / config ---
 .env
 kaggle.json
