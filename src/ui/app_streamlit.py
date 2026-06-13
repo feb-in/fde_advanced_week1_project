@@ -336,16 +336,22 @@ def main():
     st.markdown(
         """
         <style>
+          /* Tuned for the dark theme (launch with --theme.base dark). Colour cards use
+             translucent tints so they sit on the dark background and still degrade
+             acceptably if the app is ever run on a light theme. */
           .block-container {padding-top: 1.4rem;}
-          .beta {background:#fff4e5; border:1px solid #f0c890; color:#8a5a00;
-                 border-radius:8px; padding:.6rem .9rem; margin-bottom:1rem; font-size:.92rem;}
+          .beta {background:rgba(230,170,40,0.12); border:1px solid rgba(230,170,40,0.40);
+                 color:#e3c265; border-radius:8px; padding:.6rem .9rem; margin-bottom:1rem;
+                 font-size:.92rem;}
           .verdict {font-weight:700; font-size:1.02rem; margin-top:.6rem;}
           .band {color:white; text-align:center; font-weight:700; letter-spacing:.04em;
                  padding:.55rem; border-radius:8px; margin-top:1.1rem;}
           .flag {font-weight:700; padding:.6rem .8rem; border-radius:8px; margin:.4rem 0;}
-          .flagon {background:#fdecea; color:#c0392b; border:1px solid #f5c6c0;}
-          .flagoff {background:#eef6ee; color:#2e8b57; border:1px solid #cfe6cf;}
-          h5 {color:#2c5f8a; margin-bottom:.2rem;}
+          .flagon {background:rgba(220,70,55,0.16); color:#ff8d7c;
+                   border:1px solid rgba(220,70,55,0.45);}
+          .flagoff {background:rgba(46,160,90,0.16); color:#74d199;
+                    border:1px solid rgba(46,160,90,0.45);}
+          h5 {color:#6fa8dc; margin-bottom:.2rem;}
         </style>
         """,
         unsafe_allow_html=True,

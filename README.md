@@ -77,9 +77,9 @@ podman compose up --build -d  # API :8000 · Prometheus :9090 · Grafana :3000 (
 curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' \
      --data-binary @tests/sample_request.json           # → 0.074595
 
-# 5. demo UI (separate process; thin /predict client)
+# 5. demo UI (separate process; thin /predict client, dark theme)
 READMISSION_API_URL=http://localhost:8000 uv run --group ui \
-     streamlit run src/ui/app_streamlit.py              # → http://localhost:8501
+     streamlit run --theme.base dark src/ui/app_streamlit.py    # → http://localhost:8501
 ```
 Governance + monitoring artifacts: `uv run python src/governance/fairness.py`,
 `… explain.py`, `src/monitoring/drift.py`, `… retrain_trigger.py`.
@@ -102,9 +102,9 @@ podman compose up --build -d
 curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' \
      --data-binary @tests/sample_request.json            # → 0.074595
 
-# 2. the decision-support UI (separate process; thin /predict client)
+# 2. the decision-support UI (separate process; thin /predict client, dark theme)
 READMISSION_API_URL=http://localhost:8000 uv run --group ui \
-     streamlit run src/ui/app_streamlit.py               # → http://localhost:8501
+     streamlit run --theme.base dark src/ui/app_streamlit.py    # → http://localhost:8501
 
 # 3. the drift report (Evidently: control vs shifted) + the retrain decision
 uv run python src/monitoring/drift.py                    # → reports/monitoring/drift_*.html

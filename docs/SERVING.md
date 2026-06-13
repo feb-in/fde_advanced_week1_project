@@ -153,8 +153,9 @@ code lives in `src/ui/api_client.py`.
 
 ```bash
 # the API must be running first (local or container); then, in a separate process:
+# (--theme.base dark gives the dark UI; omit it to inherit the repo's light config)
 READMISSION_API_URL=http://localhost:8000 uv run --group ui \
-    streamlit run src/ui/app_streamlit.py        # opens http://localhost:8501
+    streamlit run --theme.base dark src/ui/app_streamlit.py   # opens http://localhost:8501
 ```
 
 - **API URL** from `READMISSION_API_URL` (default `http://localhost:8000`).
