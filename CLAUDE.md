@@ -28,29 +28,37 @@ class philosophy).
 
 ## 0.5 CURRENT STATE & NEXT STEP  ← read this first every session
 
-**Status:** Done through **local FastAPI + containerized API**. Stages 1–5 (incl.
-data validation, modeling, tuning, calibration, serving, packaging) complete.
-- Lead model: **calibrated CatBoost, registered `readmission-catboost-calibrated`
-  v1 @ `staging`**, operating threshold **0.091** (in the model-version tag).
-  Sigmoid calibration. LR kept as the explainable baseline.
-- API (`src/app/`): `/predict` returns calibrated risk + flag + top SHAP factors,
-  `/health`, `/metrics` (stub). **Train/serve skew check is EXACT** — encounter
-  12522 → **0.074595** identically in the training pipeline, local API, and the
-  container.
-- Container: **Podman** (rootless, v4.9.3 here; Docker also present). The model is
-  **BAKED into the image** (`deploy/export_model.py` → `deploy/model_bundle/`),
-  because the MLflow registry stores absolute host paths that don't resolve
-  in-container. The **registry alias stays the logical rollback handle** (kept in
-  `src/app/model.py` dual-load code + bundle meta). Image **≈ 943 MB** — slim,
-  serving-only deps (`deploy/requirements-serve.txt` via multi-stage build; mlflow
-  client is `mlflow-skinny`); training/EDA deps excluded.
+**Status: the BUILD + SHIP arc is COMPLETE.** Data cleaned + Great-Expectations
+validated; **CatBoost v1 calibrated (sigmoid) + registered `readmission-catboost-
+calibrated` @ `staging`**, operating threshold **0.091046** (in the model-version
+tag); **skew-free FastAPI** (`/predict` returns calibrated risk + flag + top SHAP
+factors, `/health`, `/metrics` stub) — golden encounter **12522 → 0.074595**
+identically in training, local API, and container; **slim 943 MB baked container**;
+**CI/CD via GitHub Actions is GREEN** — a test-gated pipeline that pushes the image
+to **Amazon ECR** on push to `main`.
+- LR kept as the explainable baseline. Model is **BAKED into the image**
+  (`deploy/export_model.py` → `deploy/model_bundle/`, tracked in git) because the
+  MLflow registry stores absolute host paths that don't resolve in-container; the
+  **registry alias stays the logical rollback handle** (`src/app/model.py` dual-load).
+- Image is slim serving-only deps (`deploy/requirements-serve.txt`, multi-stage,
+  `mlflow-skinny`). Container build: **Podman** (rootless) locally / **Docker** in CI.
+- CI (`.github/workflows/ci.yml`): Tier-1 schema tests on the runner → build image →
+  run the container + model-dependent tests against it over HTTP → push to ECR
+  (SHA + `latest`) only on green + only on push to `main`. The **skew test is the
+  must-not-break invariant**; bake-in is what lets a **stateless** runner reproduce
+  the container with no registry access.
 
-**EXACT next gate (do NOT skip ahead):** **ECR push + GitHub Actions CI/CD →
-AWS Fargate deploy** → then **Stage 6 monitoring** (Prometheus/Grafana/Evidently)
-→ then **Stage 7 governance** (Fairlearn audit, SHAP, model card, audit logs) +
-reflection. CI must run `tests/test_smoke.py` as a merge gate (the skew test is the
-must-not-break invariant); bake-in is correct for CI because the runner is
-stateless. **See `docs/RESUME_HERE.md` for the full resume brief + open items.**
+**EXACT next work, in grade-priority order (do NOT skip):**
+1. **Reflection doc** — `docs/REFLECTION.md` (lifecycle lessons; highest grade-value).
+2. **Governance (Stage 7)** — Fairlearn fairness audit across age/gender/race; SHAP
+   global + local; audit logging per scored request; `docs/MODEL_CARD.md`; MLflow
+   lineage/versioning; human-in-the-loop policy.
+3. **Observability (Stage 6)** — Prometheus + Grafana, prediction logging, Evidently
+   drift, ≥1 alert, a concrete numeric retrain trigger.
+4. **OPTIONAL** — Fargate live deploy (the ECR image already satisfies the
+   deployable-artifact deliverable), a Streamlit UI.
+
+**See `docs/RESUME_HERE.md` for the full resume brief + open items.**
 
 ---
 

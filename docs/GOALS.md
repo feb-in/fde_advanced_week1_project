@@ -135,7 +135,12 @@ all runs tracked in MLflow; best calibrated model registered.
 
 ---
 
-## Stage 5 — Package & Deploy 🔄  ◀ WE ARE HERE
+## Stage 5 — Package & Deploy ✅ (CI/CD → ECR done; live Fargate deploy optional)
+
+> **Build + ship arc COMPLETE.** Image is built, test-gated, and pushed to **Amazon
+> ECR** by GitHub Actions on push to `main`. The remaining live **Fargate** deploy is
+> now OPTIONAL (the ECR image satisfies the deployable-artifact deliverable).
+> **Next graded work: Reflection → Governance (Stage 7) → Observability (Stage 6).**
 
 ### What we build
 FastAPI service + Podman container + compose stack on AWS or GCP.
@@ -157,11 +162,15 @@ FastAPI service + Podman container + compose stack on AWS or GCP.
 - [~] `/health` returns 200 ✅. `/metrics` scrapeable by Prometheus → Stage 6.
 - [x] Rollback plan documented (registry alias swap + pinned image tag) —
       `docs/THRESHOLD_DECISION.md` + `docs/SERVING.md`.
-- [ ] **Deployed to AWS/GCP** — NOT done. Next: ECR + GitHub Actions CI/CD → Fargate.
+- [x] **CI/CD → Amazon ECR** — GitHub Actions (`.github/workflows/ci.yml`) runs the
+      test suite as a merge gate, builds the image, tests the running container, and
+      pushes to ECR (git SHA + `latest`) on green. **Pipeline is GREEN.**
+- [ ] **Live deploy to AWS Fargate** — OPTIONAL / not done. The ECR image is the
+      deployable artifact; a Fargate service is the optional "reachable URL" step.
 
 ---
 
-## Stage 6 — Observability
+## Stage 6 — Observability  ⏳ REMAINING (do AFTER governance — see priority order)
 
 ### What we build
 Prometheus → Grafana dashboard + Evidently drift reports + concrete retrain
@@ -177,7 +186,7 @@ trigger.
 
 ---
 
-## Stage 7 — Governance
+## Stage 7 — Governance  ◀ NEXT GRADED WORK (after the Reflection doc)
 
 ### What we build
 Fairlearn fairness audit + SHAP explanations + audit logging + model card +

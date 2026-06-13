@@ -5,90 +5,91 @@
 
 ## Where we are (one paragraph)
 
-The system is built and verified **through containerization (Stages 1–5)**: a
-reproducible DVC pipeline with Great Expectations validation gates, a calibrated
-**CatBoost** model (registered `readmission-catboost-calibrated` **v1 @ `staging`**,
-operating threshold **0.091**, sigmoid calibration; logistic regression kept as the
-explainable baseline), a **FastAPI** service (`src/app/`) exposing `/predict`
-(calibrated risk + flag + top SHAP factors), `/health`, and a `/metrics` stub, and a
-**rootless Podman container** that runs the API. The **train/serve skew check is
-exact** — encounter 12522 scores **0.074595** identically in the training pipeline,
-the local API, and the container. The model is **baked into the image**
-(`deploy/export_model.py` → `deploy/model_bundle/`) because the MLflow registry
-stores absolute host paths that don't resolve in-container; the registry **alias
-remains the logical rollback handle** (the dual-load code in `src/app/model.py` uses
-the alias locally and the baked bundle in-container).
+The **build + ship arc is complete**. A reproducible DVC pipeline cleans the data and
+gates it with Great Expectations; **CatBoost** is tuned, **calibrated (sigmoid)**, and
+registered as `readmission-catboost-calibrated` **@ `staging`** with operating
+threshold **0.091046** in the version tag (logistic regression kept as the explainable
+baseline). A **skew-free FastAPI** service (`src/app/`) serves `/predict` (calibrated
+risk + flag + top SHAP factors), `/health`, and a `/metrics` stub — the golden
+encounter **12522 scores 0.074595** identically in training, the local API, and the
+container. The service is packaged as a **slim 943 MB container** with the model
+**baked in** (`deploy/model_bundle/`, tracked in git), and **CI/CD via GitHub Actions
+is GREEN**: a test-gated pipeline that, on push to `main`, runs the schema tests,
+builds the image, tests the running container over HTTP, and **pushes to Amazon ECR**
+(git SHA + `latest`) only when everything passes.
 
-## Exact next action
+## Exact next action (grade-priority order)
 
-**ECR push + GitHub Actions CI/CD → AWS Fargate deploy.** Then, in order:
-1. **Stage 6 — Observability:** Prometheus scraping `/metrics`, Grafana dashboards,
-   Evidently drift report + a concrete numeric retrain trigger, per-request audit log.
-2. **Stage 7 — Governance:** Fairlearn subgroup audit (age/gender/race), global SHAP
-   summary, `docs/MODEL_CARD.md`, audit-log traceability, written rollback+retrain
-   plan, reflection.
+1. **Reflection doc first** — `docs/REFLECTION.md`. Highest grade-value, low effort:
+   the lifecycle story (framing → data discipline → modeling → calibration/threshold →
+   serving/skew → containerize → CI/CD), what went wrong and what you'd do differently.
+2. **Governance (Stage 7)** — Fairlearn `MetricFrame` across **age / gender / race**
+   (subgroup recall / PR-AUC gaps + mitigation stance); SHAP global summary + the local
+   per-prediction factors the API already returns; **audit logging** per scored request
+   (request, response, model version, latency); `docs/MODEL_CARD.md`; MLflow
+   lineage/versioning; a **human-in-the-loop** policy for low-confidence cases.
+3. **Observability (Stage 6)** — Prometheus scraping `/metrics` + Grafana dashboards;
+   prediction logging; an Evidently drift report demonstrated firing on a shifted
+   batch; **≥1 alert**; a **concrete numeric retrain trigger** (e.g. PSI > 0.2 on top
+   features, or labelled-feedback PR-AUC < X).
+4. **OPTIONAL** — Fargate live deploy (the ECR image already satisfies the
+   deployable-artifact deliverable); a Streamlit UI over `/predict`.
 
-Do **not** skip ahead — finish CI/CD + deploy before monitoring.
+Do them in this order — Reflection + Governance are where the remaining grade lives.
 
-## CI/CD intent (so it isn't re-derived)
+## Open items for the model card / reflection to capture
 
-- The pipeline **runs `tests/test_smoke.py` as a MERGE GATE** — push the image to ECR
-  **only on green**. The **skew test is the must-not-break invariant**.
-- **Bake-in is the correct model approach for CI**: a GitHub Actions runner is
-  **stateless** (no `mlflow.db` / `mlruns`), exactly why the runtime mount fails and
-  baking works. CI should run `deploy/export_model.py` (needs registry access — decide
-  how the runner reaches the registry, e.g. a checked-in/restored store or an S3
-  artifact backend) then `podman build`. Note this dependency when wiring CI.
-- Target runtime: **AWS Fargate** (per CLAUDE.md: AWS or GCP only).
-
-## Open items to resolve first
-
-1. **SHAP magnitudes are pre-calibration log-odds.** The `/predict` `top_factors`
-   contributions come from the base CatBoost learner's margin, not the calibrated
-   probability — directions are valid, magnitudes are pre-calibration. **Note this in
-   `docs/MODEL_CARD.md`** (Stage 7).
-2. **`requirements.txt` vs `pyproject.toml` drift.** `pyproject.toml` + `uv.lock` are
-   authoritative (the container uses `uv sync --frozen`). `requirements.txt` is a
-   human-readable mirror that has **drifted** (missing `optuna`, `great-expectations`
-   added later via `uv add`). Decide: regenerate it from the lock (`uv export`) or
-   drop it. Not blocking — the container doesn't use it.
-3. **Confirm the baked-in model approach** is acceptable as the deploy path (it is the
-   chosen approach; the alias indirection is preserved). If a live registry is wanted
-   in-cluster instead, that's a Stage-6+ decision.
-4. ~~Image size~~ **RESOLVED.** Image slimmed to **≈ 943 MB** (from 7.35 GB) via a
-   serving-only pinned set (`deploy/requirements-serve.txt`, `mlflow-skinny`) in a
-   multi-stage build — golden score unchanged (0.074595). Ready to push to ECR.
+- **SHAP magnitudes are pre-calibration log-odds.** The `/predict` `top_factors`
+  contributions come from the base CatBoost learner's margin, not the calibrated
+  probability — **directions are valid**, magnitudes are pre-calibration. State this.
+- **Threshold 0.091046 flags ~30% of discharges at recall ~0.5.** A documented
+  dial-down exists (recall ~0.40 → ~22% flagged) in `docs/THRESHOLD_DECISION.md`.
+- **The single GLOBAL threshold must be revisited per-subgroup** in the fairness audit —
+  one cutoff can land very differently across age / gender / race.
+- **CI IAM uses a managed ECR PowerUser policy.** Note **least-privilege + OIDC
+  (keyless)** as the production hardening (vs the static access-key the workflow uses).
+- **`requirements.txt`** is a human-readable mirror that has drifted from `pyproject.toml`
+  + `uv.lock` (the authoritative source). Regenerate or drop it — not blocking.
 
 ## The invariant to re-verify BEFORE building anything
 
 ```bash
-uv run pytest tests/test_smoke.py -q     # 5 tests; test_no_train_serve_skew is the gate
+uv run pytest tests/ -q          # full suite (container tier skips without a server)
 ```
-Expect green, and the skew test confirms encounter 12522 → **0.074595** (API ==
-training pipeline). If this breaks, stop and fix before any deploy work.
+And the golden artifact check — container `/predict` for encounter 12522 must return
+**0.074595** with the model loaded `@ staging`. If either breaks, stop and fix first.
 
 ## Get running again (exact commands)
 
 ```bash
-# 1. re-verify the invariant
-uv run pytest tests/test_smoke.py -q
+# 0. (governance/observability work needs the registry) start MLflow locally
+mlflow server --backend-store-uri sqlite:///mlflow.db \
+  --default-artifact-root ./mlruns --host 0.0.0.0 --port 5000   # or just use sqlite:/// directly
 
-# 2. (re)bake the @staging model, then build the image (rootless Podman)
+# 1. re-verify the invariant
+uv run pytest tests/ -q
+
+# 2. (re)bake the @staging model + build the slim image (rootless Podman)
 uv run python deploy/export_model.py
 podman build -f deploy/Containerfile -t readmission-api:latest .
 
-# 3. run (NO mounts — the model is baked in) and hit it
-podman rm -f readmission-api 2>/dev/null
-podman run -d --name readmission-api -p 8000:8000 readmission-api:latest
-curl -s localhost:8000/health        # → v1 @ staging, threshold 0.091, load_source=baked-bundle
+# 3. run the container (model baked in, NO mounts) and hit it
+podman rm -f rapi 2>/dev/null
+podman run -d --name rapi -p 8000:8000 readmission-api:latest
+curl -s localhost:8000/health        # → v1 @ staging, threshold 0.091046, load_source=baked-bundle
 curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' \
      --data-binary @tests/sample_request.json    # → readmission_probability 0.074595
+
+# 4. trigger CI: commit + push to main → GitHub Actions tests, builds, pushes to ECR on green
+git push origin main
 ```
 
-Local dev (no container) loads from the registry by alias automatically:
+Local dev API (no container) loads from the registry by alias automatically:
 `uv run uvicorn src.app.app:app --port 8000`.
 
 ## Key references
-- `CLAUDE.md` §0.5 — current state & hard rules. `docs/GOALS.md` — staged plan (ticked).
+- `CLAUDE.md` §0.5 — current state + hard rules. `docs/GOALS.md` — staged plan (ticked).
+- `.github/workflows/ci.yml` — the test-gated ECR pipeline (4 GitHub Secrets required:
+  `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `ECR_REPOSITORY`).
 - `docs/SERVING.md` — API + rejection policy. `docs/THRESHOLD_DECISION.md` — 0.091 + rollback.
-- `docs/DATA_VALIDATION.md` — GX suites + the contract read three ways.
+- `docs/DATA_VALIDATION.md` — GX suites. `docs/MODEL_COMPARISON.md` — LR vs CatBoost verdict.
