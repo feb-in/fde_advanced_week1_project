@@ -1,7 +1,7 @@
 [project]
-name = "readmission-starter"
+name = "readmission-risk-system"
 version = "0.1.0"
-description = "Add your description here"
+description = "End-to-end 30-day hospital readmission risk system: reproducible DVC data pipeline, calibrated CatBoost model, FastAPI service, observability, and governance."
 requires-python = ">=3.12"
 dependencies = [
     "catboost>=1.2.10",
