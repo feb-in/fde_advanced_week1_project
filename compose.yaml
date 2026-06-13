@@ -1,8 +1,14 @@
 # Docker-compatible compose for `podman compose` (Podman v4+) or `podman-compose`.
-# Brings up the API now; observability services are scaffolded but NOT wired (Stage 6).
+# Observability stack (Stage 6 SETUP): api (instrumented) + prometheus + grafana.
 #
-#   podman compose up --build
+#   uv run python deploy/export_model.py   # ensure the baked bundle exists
+#   podman compose up --build -d
 #
+#   API        http://localhost:8000  (/health /predict /metrics)
+#   Prometheus http://localhost:9090  (Status → Targets: readmission-api = UP)
+#   Grafana    http://localhost:3000  (admin/admin; Prometheus datasource auto-provisioned)
+#
+# SELinux note (Podman): bind mounts carry :Z so they are relabeled for the container.
 services:
   api:
     build:
@@ -18,28 +24,36 @@ services:
       # (or roll the image tag back to a previously-good build).
       MODEL_BUNDLE_DIR: /app/model_bundle
     restart: unless-stopped
-    # Note: build requires the bundle to exist first —
-    #   uv run python deploy/export_model.py && podman compose up --build
 
-# --- Stage 6 (observability) will add these. Intentionally NOT wired yet. ---
-# Placeholders only — uncomment + configure in the observability gate.
-#
-#  prometheus:
-#    image: docker.io/prom/prometheus:latest
-#    volumes:
-#      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:Z   # scrapes api:8000/metrics
-#    ports:
-#      - "9090:9090"
-#
-#  grafana:
-#    image: docker.io/grafana/grafana:latest
-#    ports:
-#      - "3000:3000"
-#    depends_on:
-#      - prometheus
-#
+  prometheus:
+    image: docker.io/prom/prometheus:latest
+    container_name: readmission-prometheus
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:Z   # scrapes api:8000/metrics
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    container_name: readmission-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      # Datasource is auto-provisioned (Prometheus). Dashboards come next session.
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:Z
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+# --- Optional (not in scope this gate): a standalone MLflow tracking server. ---
 #  mlflow:
-#    # Optional: a standalone MLflow tracking server instead of the sqlite bind-mount.
 #    image: ghcr.io/mlflow/mlflow:latest
 #    command: >
 #      mlflow server --backend-store-uri sqlite:///mlflow.db

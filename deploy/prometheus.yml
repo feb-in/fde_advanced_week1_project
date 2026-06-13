@@ -1,0 +1,14 @@
+# Prometheus scrape config for the readmission API.
+# `api` is the compose service name — it resolves on the compose network, so
+# Prometheus scrapes the container's real /metrics (instrumented FastAPI).
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: readmission-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8000"]
+        labels:
+          service: readmission-api
