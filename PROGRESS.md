@@ -206,3 +206,26 @@ picking up real clinical signal, not noise.
 
 **Up next:** make the model's probabilities trustworthy (calibration), choose the
 risk cutoff that fits the cost of a missed readmission, and register the model.
+
+---
+
+## Step — Making the risk scores honest, and setting the cutoff
+A model can rank patients well but still output numbers that don't mean what they say —
+a "0.30" that doesn't actually correspond to a 30% chance. So I added a calibration
+step that corrects the scores so the number means what it claims. I tried two methods
+and picked the simpler one (they tied), and it made the probabilities ~21% more honest
+without changing how the model ranks patients at all.
+
+Then I set the decision cutoff — the line above which a patient is flagged for extra
+follow-up. Because this is a safety-net screening tool, I leaned toward catching more
+true cases: at the chosen cutoff the model catches about half of the patients who will
+actually be readmitted. The trade-off is that it flags roughly a third of all patients
+to do that, most of whom won't return — an unavoidable reality when only ~9% are
+readmitted. I documented a lower-sensitivity setting too, in case the hospital's
+follow-up capacity is tighter.
+
+Finally I registered the finished model so the live service can load it, and so I can
+roll back to a previous version by flipping its status if needed.
+
+**Up next:** wrap the model in an API that returns a risk score plus the reasons behind
+it, then package it to run anywhere.
