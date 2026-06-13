@@ -54,7 +54,8 @@ compose.yaml  api + prometheus + grafana stack (Podman/Docker-compatible)
 data/         raw/ processed/ featurized/ monitoring/   (DVC-tracked, gitignored)
 EDA/          exploratory analysis (Streamlit dashboard + analysis engine)
 tests/        smoke + 3-tier suite (schema / skew / behaviour / container)
-dvc.yaml      validate_raw → clean → featurize → validate_processed (`dvc repro`)
+dvc.yaml      validate_raw → clean → featurize → validate_processed → make_reference
+              (data: `dvc repro validate_processed`; make_reference needs the trained model)
 .github/      workflows/ci.yml — test-gated build → push to Amazon ECR
 ```
 
@@ -63,21 +64,24 @@ dvc.yaml      validate_raw → clean → featurize → validate_processed (`dvc 
 # 1. environment (uv is the source of truth; pyproject.toml + uv.lock are pinned)
 uv sync
 
-# 2. data — PRIMARY path (no credentials): place the raw Kaggle CSV at
-#    data/raw/diabetic_data.csv, then rebuild the whole dataset:
-dvc repro                     # validate_raw → clean → featurize → validate_processed → make_reference
-#    OPTIONAL (if you have DagsHub access): fetch the tracked data instead of rebuilding
-# dvc pull -r origin
+# 2. data — rebuild from the raw Kaggle CSV (no credentials). Place the CSV at
+#    data/raw/diabetic_data.csv, then build the DATA stages only:
+dvc repro validate_processed  # validate_raw → clean → featurize → validate_processed
+#    (a bare `dvc repro` ALSO runs make_reference, which needs the model registered first —
+#     see step 3. For the optional DagsHub pull, see "Reproducibility" below.)
 
-# 3. train: LR baseline + CatBoost, logged to MLflow (sqlite:///mlflow.db by default)
-uv run python src/models/train.py
-mlflow ui --backend-store-uri sqlite:///mlflow.db        # → http://localhost:5000
+# 3. model — run IN ORDER; each step depends on the previous:
+uv run python src/models/train.py      # LR baseline + CatBoost, logged to MLflow
+uv run python src/models/tune.py        # Optuna search — REQUIRED before calibrate.py
+uv run python src/models/calibrate.py   # calibrates the tuned model + registers v1 @staging
+uv run python src/monitoring/make_reference.py   # drift baseline (registry now populated)
+mlflow ui --backend-store-uri sqlite:///mlflow.db   # inspect runs → http://localhost:5000 (optional)
 
-# 4. serve + monitor: build the slim image, bring up api + prometheus + grafana
-uv run python deploy/export_model.py
+# 4. serve + monitor — the calibrated model is COMMITTED in deploy/model_bundle/ and baked
+#    into the image, so the container serves the golden model directly (no training/export):
 podman compose up --build -d  # API :8000 · Prometheus :9090 · Grafana :3000 (admin/admin)
 curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' \
-     --data-binary @tests/sample_request.json           # → 0.074595
+     --data-binary @tests/sample_request.json           # committed bundle → 0.074595 (see note)
 
 # 5. demo UI (separate process; thin /predict client; dark theme via .streamlit/config.toml)
 READMISSION_API_URL=http://localhost:8000 uv run --group ui \
@@ -86,13 +90,22 @@ READMISSION_API_URL=http://localhost:8000 uv run --group ui \
 Governance + monitoring artifacts: `uv run python src/governance/fairness.py`,
 `… explain.py`, `src/monitoring/drift.py`, `… retrain_trigger.py`.
 
+> **On the golden score `0.074595`:** the **committed** `deploy/model_bundle/` (what the
+> container serves) reproduces it exactly, at threshold `0.091046` — so serving and CI are
+> deterministic. A *from-scratch retrain* (step 3) reproduces it only with the **full
+> default Optuna trial budget** (~30+ min on typical hardware); with fewer trials a
+> slightly different score (e.g. `~0.0738`) is expected and **not** a failure — the
+> calibration + threshold come out the same shape.
+
 ## How to see it live
 
 The repo is the deliverable; here is how to bring up each surface locally.
 
 ```bash
-# 0. one-time: bake the registered @staging model into the deploy bundle
-uv run python deploy/export_model.py
+# The calibrated model is COMMITTED in deploy/model_bundle/ and baked into the image, so
+# the container serves the golden model directly — no training or export needed here.
+# (deploy/export_model.py only REFRESHES the bundle after registering a NEW model, and it
+#  itself needs a populated MLflow registry — so it is NOT a step for just running this.)
 
 # 1. the stack — API + Prometheus + Grafana (Podman; Docker-compatible)
 podman compose up --build -d
@@ -102,7 +115,7 @@ podman compose up --build -d
 
 # score the golden patient (calibrated risk + flag + top SHAP factors)
 curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' \
-     --data-binary @tests/sample_request.json            # → 0.074595
+     --data-binary @tests/sample_request.json            # committed bundle → 0.074595
 
 # 2. the decision-support UI (separate process; thin /predict client; dark theme)
 READMISSION_API_URL=http://localhost:8000 uv run --group ui \
@@ -125,8 +138,9 @@ Stop the stack with `podman compose down`.
 ![DVC pipeline graph: raw CSV → validate → clean → featurize → validate, with DVC-managed data and git-managed code](docs/screenshots/dvc-pipeline-dag.png)
 The DVC pipeline graph — the versioned data lineage from the raw CSV through validation,
 cleaning, and featurization. Blue nodes are DVC-managed data artifacts (raw CSV,
-processed/featurized parquets, drift reference), teal are the git-managed scripts; one
-`dvc repro` rebuilds the whole chain from the raw CSV.
+processed/featurized parquets, drift reference), teal are the git-managed scripts;
+`dvc repro validate_processed` rebuilds the data chain from the raw CSV (the `make_reference`
+branch needs the trained model — see the model steps in the Quickstart).
 
 ### Decision-support UI — truth vs prediction
 ![Streamlit UI (dark): a held-out patient's model risk + follow-up flag beside the true 30-day outcome, marked ✓/✗](docs/screenshots/ui-truth-vs-prediction.png)
@@ -172,22 +186,33 @@ reports: `reports/monitoring/drift_{control,shifted}.html`.
   model card, reflection.
 - ✅ **Demo UI** — thin-client Streamlit with a load-random-held-out-patient
   truth-vs-prediction demo.
-- ⬜ **Remaining** — verify clean-checkout reproducibility end-to-end;
-  optional AWS Fargate live deploy.
+- ✅ **Clean-checkout reproducibility** — dry-run done; the build order above is the
+  corrected, verified path. ⬜ Optional: AWS Fargate live deploy.
 
 ## Reproducibility
 
-**Primary path (no credentials needed):** rebuild the dataset from the raw CSV. Obtain the
-raw Kaggle CSV, place it at `data/raw/diabetic_data.csv`, and run `dvc repro` — it runs
-the full pipeline (`validate_raw → clean → featurize → validate_processed → make_reference`)
-and regenerates the processed/featurized parquets and the drift reference. This is the
-supported default and needs no external access.
+**Primary, supported path (no credentials):** rebuild from the raw CSV, in this order —
 
-**Optional convenience (if you have DagsHub access):** the DVC-tracked data (raw CSV,
-processed + featurized parquets, drift reference) is also pushed to a **DagsHub DVC
-remote**, so `dvc pull -r origin` fetches it instead of rebuilding. This requires DagsHub
-authentication, so it's optional — the rebuild path above remains the primary method. See
-`docs/RESUME_HERE.md` (submission checklist) for the full done-vs-left list.
+```bash
+# 1. data (stops before make_reference, which needs the model):
+dvc repro validate_processed
+# 2. model, IN ORDER (tune.py is a PREREQUISITE of calibrate.py):
+uv run python src/models/train.py
+uv run python src/models/tune.py
+uv run python src/models/calibrate.py        # registers v1 @staging
+# 3. drift baseline (now the registry is populated):
+dvc repro make_reference                     # equivalently: uv run python src/monitoring/make_reference.py
+```
+
+A *bare* `dvc repro` runs `make_reference` too, so it only succeeds **after** step 2 — on a
+fresh clone use `dvc repro validate_processed` for the data. The committed
+`deploy/model_bundle/` already contains the calibrated model, so **serving the system needs
+none of the above** (`podman compose up --build` serves it directly).
+
+**Optional (DagsHub, may require auth):** a DagsHub DVC remote (`origin`) is configured and
+the data was pushed, but **`dvc pull -r origin` requires DagsHub authentication and is not
+guaranteed to work anonymously** — the raw-CSV rebuild above is the primary, supported
+path. See `docs/RESUME_HERE.md` (submission checklist) for the full done-vs-left list.
 
 ## Headline metrics (not accuracy)
 The positive class is ~9%, so accuracy is a trap. We report **PR-AUC**, **recall
