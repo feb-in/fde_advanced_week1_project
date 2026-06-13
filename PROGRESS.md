@@ -255,3 +255,40 @@ the local version — the move into a container introduced no drift.
 
 **Up next:** push the image to the cloud and set up automated build-and-deploy, then
 add monitoring and the fairness/governance checks.
+
+---
+
+## Step — Adding a data quality gate (Great Expectations)
+Before trusting any data through the pipeline, I added an automatic quality checkpoint.
+It's a set of rules describing what valid data looks like — the right columns, sensible
+value ranges, the categories each field is allowed to take, how missing values are
+coded — and the pipeline refuses to proceed if the data breaks them.
+
+I check at two points, because they catch different problems. One set of rules guards
+the *raw* file as it comes in (did a column vanish, did an unexpected code appear). A
+second set guards the *cleaned* output (did my own pipeline produce something wrong —
+duplicates that shouldn't exist, a readmission rate that drifted out of range). A
+failing check stops the pipeline loudly rather than letting bad data slip through — and
+I proved that by feeding it a deliberately broken row (a patient with gender "Martian")
+and watching it halt.
+
+The same rulebook does double duty: it's exported as a shared "contract" that the live
+service's input checks are built from, so the pipeline and the API agree on what valid
+input means instead of drifting apart. Later, the drift monitoring will lean on it too.
+
+## Step — Slimming the container so it's deployable
+The first container I built was ~7.4 GB — it had accidentally packed in the entire
+training-and-experimentation toolkit, none of which the live service needs. That size
+would make cloud uploads slow and start-up sluggish. So I split out a serving-only set
+of dependencies (just what's needed to answer a prediction) and rebuilt.
+
+The result: **943 MB — about 87% smaller** — and, the part that mattered most, it
+still scores the test patient to the exact same digit (0.074595) as before. Cutting the
+fat changed nothing about the answers; it just made the thing light enough to ship
+sensibly. I verified the slim version against that "golden number" before keeping it,
+so I never traded correctness for size.
+
+**Up next:** push the image to the cloud's container registry with an automated
+build-and-test pipeline (every change runs the test suite before it can ship), deploy
+it so it's reachable at a URL, then add live monitoring and the fairness/governance
+checks.
