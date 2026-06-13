@@ -49,8 +49,13 @@ stages:
     # registry (models:/readmission-catboost-calibrated@staging). mlflow.db / mlruns are
     # local, gitignored, and carry absolute host paths, so they are not clean versioned
     # DVC artifacts and are deliberately not listed as deps. This stage therefore assumes
-    # the @staging model is already registered — i.e. src/models/train.py + calibrate.py
-    # have run. The deps below are the clean, versioned file inputs only.
+    # the @staging model is already registered — i.e. src/models/train.py + tune.py +
+    # calibrate.py have run. The deps below are the clean, versioned file inputs only.
+    #
+    # CLEAN-CLONE NOTE: a bare `dvc repro` reaches this stage and FAILS (exit 255) if the
+    # registry isn't populated. To rebuild DATA ONLY use `dvc repro validate_processed`
+    # (this stage is a parallel branch off `featurize`, so it is NOT triggered by that
+    # target). Run `dvc repro make_reference` (or full `dvc repro`) only AFTER calibrate.py.
     cmd: uv run python src/monitoring/make_reference.py
     deps:
       - src/monitoring/make_reference.py
