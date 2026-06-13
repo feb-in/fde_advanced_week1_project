@@ -1,5 +1,7 @@
 # 30-Day Hospital Readmission Risk — Production ML System
 
+[![CI — test, build, push to ECR](https://github.com/feb-in/fde_advanced_week1_project/actions/workflows/ci.yml/badge.svg)](https://github.com/feb-in/fde_advanced_week1_project/actions/workflows/ci.yml)
+
 Predicts, **at discharge**, the probability a diabetic patient is readmitted
 within 30 days — and takes that prediction all the way to a **running, monitored,
 governed service**, not a notebook model.
@@ -8,10 +10,31 @@ governed service**, not a notebook model.
 > Code). Then `docs/PROJECT_BRIEF.md` (problem + graded traps) and
 > `docs/GOALS.md` (the authoritative staged plan and definition of done).
 
+## What this system includes
+
+A full ML lifecycle, not just a model — every surface below is real code in this repo:
+
+| Surface | Where |
+|---|---|
+| **Reproducible data pipeline** — DVC: validate → clean → featurize → validate | `dvc.yaml` · `src/data/` · `src/features/` |
+| **Experiment tracking** — MLflow runs + model registry (`@staging`) | `src/models/` (`train`·`tune`·`calibrate`) · `mlflow.db` |
+| **FastAPI service** — `/predict` (calibrated risk + SHAP), `/health`, real `/metrics` | `src/app/` |
+| **Streamlit decision-support UI** — thin `/predict` client; load-random-patient truth-vs-prediction | `src/ui/` |
+| **Containerization** — slim rootless image, model baked in (Podman) | `deploy/Containerfile` · `deploy/model_bundle/` |
+| **CI/CD → Amazon ECR** — test-gated build + push on green | `.github/workflows/ci.yml` |
+| **Observability** — Prometheus + Grafana dashboard + 3 alert rules | `compose.yaml` · `deploy/prometheus.yml` · `deploy/alerts.yml` · `deploy/grafana/` |
+| **Drift detection + retrain trigger** — Evidently; validated firing on a shifted batch | `src/monitoring/drift.py` · `retrain_trigger.py` |
+| **Governance** — Fairlearn audit, global+local SHAP, per-request audit log, model card | `src/governance/` · `src/app/audit.py` · `docs/MODEL_CARD.md` · `docs/FAIRNESS_AUDIT.md` |
+| **Reflection** — trade-offs, production gaps, model limits | `docs/REFLECTION.md` |
+
 ## Stack
 Python 3.12 · **uv** · scikit-learn / **CatBoost** · MLflow · DVC · FastAPI ·
 SHAP · Fairlearn · Evidently · Prometheus + Grafana · **Podman** (not Docker).
-Deploy target: AWS or GCP.
+
+**Deployment:** the container image is **built, tested, and pushed to Amazon ECR by
+GitHub Actions CI/CD** on every green push to `main` — a one-command-deployable artifact.
+A live AWS/Fargate service is **not** stood up here; the published ECR image is the
+deployable deliverable.
 
 ## Layout (cookiecutter-data-science flavour)
 ```
@@ -61,6 +84,63 @@ READMISSION_API_URL=http://localhost:8000 uv run --group ui \
 Governance + monitoring artifacts: `uv run python src/governance/fairness.py`,
 `… explain.py`, `src/monitoring/drift.py`, `… retrain_trigger.py`.
 
+## How to see it live
+
+The repo is the deliverable; here is how to bring up each surface locally.
+
+```bash
+# 0. one-time: bake the registered @staging model into the deploy bundle
+uv run python deploy/export_model.py
+
+# 1. the stack — API + Prometheus + Grafana (Podman; Docker-compatible)
+podman compose up --build -d
+#   API         http://localhost:8000   /health · /predict · /metrics
+#   Prometheus  http://localhost:9090   Status → Targets (UP) · Status → Rules (3 alerts)
+#   Grafana     http://localhost:3000   login admin / admin → "Readmission API — Observability"
+
+# score the golden patient (calibrated risk + flag + top SHAP factors)
+curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' \
+     --data-binary @tests/sample_request.json            # → 0.074595
+
+# 2. the decision-support UI (separate process; thin /predict client)
+READMISSION_API_URL=http://localhost:8000 uv run --group ui \
+     streamlit run src/ui/app_streamlit.py               # → http://localhost:8501
+
+# 3. the drift report (Evidently: control vs shifted) + the retrain decision
+uv run python src/monitoring/drift.py                    # → reports/monitoring/drift_*.html
+uv run python src/monitoring/retrain_trigger.py          # control → keep · shifted → RETRAIN
+
+# 4. experiment tracking
+mlflow ui --backend-store-uri sqlite:///mlflow.db        # → http://localhost:5000
+```
+Stop the stack with `podman compose down`.
+
+## Screenshots / Evidence
+
+*Static proof the surfaces above actually run. Drop the PNGs into `docs/screenshots/`
+(filenames below) to render them.*
+
+### Decision-support UI — truth vs prediction
+![Streamlit UI: a held-out patient's model risk + follow-up flag beside the true 30-day outcome, marked ✓/✗](docs/screenshots/ui-truth-vs-prediction.png)
+The thin-client UI scoring a real **held-out-test** patient (one the model never trained
+on): calibrated risk, the follow-up flag, top SHAP factors, and the model's call checked
+against the actual 30-day outcome — right *and* wrong calls shown openly.
+
+### Grafana dashboard — live service metrics
+![Grafana dashboard panels: request rate, p50/p95 latency, 5xx error rate, total predictions](docs/screenshots/grafana-dashboard.png)
+The provisioned *"Readmission API — Observability"* dashboard reading real Prometheus
+metrics: request rate by handler, p50/p95 latency, 5xx error rate, and predictions served.
+
+### CI/CD — green pipeline
+![Green GitHub Actions run: tests pass, image built and pushed to Amazon ECR](docs/screenshots/ci-green.png)
+A green GitHub Actions run: schema tests → image build → container tests (golden score
+**0.074595**) → push to **Amazon ECR**. Every change is gated by the test suite.
+
+### Drift detection — Evidently report
+![Evidently data-drift report: a shifted batch flagged against the training reference](docs/screenshots/evidently-drift.png)
+The Evidently report for the deliberately **shifted** batch — dataset drift detected, the
+shifted features and the prediction flagged — while the unshifted **control** stays silent.
+
 ## Status — all stages complete
 - ✅ **Stages 1–4** — env/DVC, reproducible cleaning + GX validation, deterministic
   featurization, LR baseline + CatBoost (Optuna), calibration + threshold, registered.
@@ -72,7 +152,8 @@ Governance + monitoring artifacts: `uv run python src/governance/fairness.py`,
   model card, reflection.
 - ✅ **Demo UI** — thin-client Streamlit with a load-random-held-out-patient
   truth-vs-prediction demo.
-- ⬜ **Remaining** — verify clean-checkout reproducibility (no DVC remote yet) + push.
+- ⬜ **Remaining** — verify clean-checkout reproducibility (no DVC remote yet);
+  optional AWS Fargate live deploy.
 
 ## Reproducibility
 `dvc repro` rebuilds the dataset from the raw CSV. **No DVC remote is configured**, so
