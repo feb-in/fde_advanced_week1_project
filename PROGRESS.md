@@ -24,8 +24,10 @@ defensible option on purpose* rather than experimenting my way to a tiny gain.
 
 I ran `dvc init` and then `dvc add` on the raw CSV. After that, git only stores a tiny
 **pointer file** — basically a fingerprint of the data — while the real file lives in a
-local DVC cache. Anyone who clones the repo runs `dvc pull` to fetch the exact same
-bytes.
+DVC cache (later also pushed to a DagsHub remote). On a fresh clone the supported way to
+get the data is to **rebuild it from the raw CSV** by re-running the data pipeline
+(`dvc repro validate_processed`) — credential-free; a `dvc pull` from the remote is an
+optional shortcut that needs DagsHub access.
 
 **Why it matters:** the data is now reproducible and tracked. If the file ever changes,
 its fingerprint changes and git shows me immediately. No more "which version of the

@@ -11,7 +11,8 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 
 ## North-star qualities
 
-- **Reproducible** — `dvc repro` rebuilds the dataset; one command retrains.
+- **Reproducible** — `dvc repro validate_processed` rebuilds the dataset from the raw
+  CSV; the model retrains via a documented `train → tune → calibrate` sequence.
   Nothing depends on hidden notebook state.
 - **Honest about imbalance** — PR-AUC, recall@fixed-precision, calibration;
   never accuracy as the headline.
@@ -32,8 +33,9 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 > ECR green), governance (fairness audit, SHAP, audit log, model card, reflection),
 > and observability (real `/metrics`, compose stack, Grafana dashboard, 3 alert rules,
 > Evidently drift validated, retrain trigger) are all done; a thin-client Streamlit demo
-> UI is built. **Only remaining before submission: verify clean-checkout reproducibility
-> (no DVC remote — see below) and push to GitHub.** Optional: AWS Fargate live deploy.
+> UI is built, pushed to GitHub, and a **DagsHub DVC remote is configured**. The
+> clean-checkout reproducibility dry-run is **done** (build-order gaps found + fixed — see
+> the caveat below). Optional: AWS Fargate live deploy.
 > See `docs/RESUME_HERE.md` (submission checklist).
 
 ## Stage 1 — Setup & Tooling ✅
@@ -46,7 +48,8 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 ### Definition of done
 - [x] `uv run python -c "import pandas, sklearn, catboost, mlflow, shap"` passes.
 - [x] `data/raw/diabetic_data.csv.dvc` committed; actual CSV gitignored.
-- [x] `dvc pull` on a fresh clone would restore the raw file.
+- [x] A fresh clone can recover the raw file — `dvc repro validate_processed` rebuilds it
+      from the CSV (primary), or `dvc pull -r origin` with DagsHub auth.
 
 ---
 
@@ -218,18 +221,20 @@ reflection.
 
 ## Whole-project done
 
-From a clean checkout, a reviewer follows the README to: `dvc repro` rebuilds
-data → `uv run python src/models/train.py` retrains and logs to MLflow → `podman
-compose up` starts the stack → `curl /predict` returns a calibrated score + top
-SHAP factors → Grafana shows live metrics → Evidently report generated → fairness
-audit and model card are readable → every scored request has an audit log entry —
-and a written rollback + retrain plan exists. **All of these artifacts exist and run.**
+From a clean checkout, a reviewer follows the README's build order: `dvc repro
+validate_processed` rebuilds the data → `train.py → tune.py → calibrate.py` retrain,
+calibrate, and register v1 @staging (logged to MLflow) → `dvc repro make_reference`
+builds the drift baseline → `podman compose up --build` starts the stack → `curl
+/predict` returns a calibrated score + top SHAP factors → Grafana shows live metrics →
+Evidently report generated → fairness audit and model card are readable → every scored
+request has an audit log entry — and a written rollback + retrain plan exists. **All of
+these artifacts exist and run.** (Serving alone needs none of the rebuild: the calibrated
+model is committed in `deploy/model_bundle/` and the container serves it directly.)
 
-> **⚠ Reproducibility caveat (the one open pre-submission item):** there is **no DVC
-> remote configured**, so `dvc pull` fails on a fresh clone. The DVC-tracked raw CSV
-> (`data/raw/diabetic_data.csv.dvc`) and reference parquet
-> (`data/monitoring/reference.parquet.dvc`) are **local-only**. A clean-clone reviewer
-> must either (a) obtain the raw Kaggle CSV, place it at `data/raw/diabetic_data.csv`,
-> and run `dvc repro` to rebuild everything, or (b) we configure + push a DVC remote
-> before submission. The README path has **not yet been run end-to-end on a clean
-> checkout** — that verification is the last to-do. See `docs/RESUME_HERE.md`.
+> **Reproducibility (verified):** the clean-checkout dry-run has been **done** — the
+> corrected build order lives in the README ("Reproducibility") and `docs/RESUME_HERE.md`.
+> A **DagsHub DVC remote (`origin`) is configured**, but `dvc pull -r origin` **requires
+> DagsHub authentication and is not guaranteed to work anonymously**, so the **primary,
+> supported path is the raw-CSV rebuild**: place the Kaggle CSV at
+> `data/raw/diabetic_data.csv` → `dvc repro validate_processed` → `train.py` → `tune.py`
+> → `calibrate.py` (registers v1 @staging) → `dvc repro make_reference`.

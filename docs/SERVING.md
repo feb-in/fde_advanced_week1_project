@@ -108,9 +108,13 @@ should ship these to an access-controlled, append-only, retention-governed sink.
 (Podman-compatible; bind mounts carry `:Z` for SELinux). Prometheus scrapes the API's
 real `/metrics`; Grafana auto-provisions the Prometheus datasource on startup.
 
+The calibrated model is **committed in `deploy/model_bundle/`** and baked into the image,
+so `podman compose up --build` serves the golden model directly — **no export or training
+step is needed**. (`deploy/export_model.py` only *refreshes* the bundle after registering a
+new model, and itself requires a populated MLflow registry.)
+
 ```bash
-uv run python deploy/export_model.py        # ensure the baked bundle exists
-podman compose up --build -d                 # start api + prometheus + grafana
+podman compose up --build -d                 # start api + prometheus + grafana (serves the committed bundle)
 
 # (podman compose talks to the Podman API socket; if it errors with
 #  "podman.sock ... no such file", start it once:  systemctl --user start podman.socket)
