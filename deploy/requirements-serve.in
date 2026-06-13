@@ -1,0 +1,13 @@
+# Serving-only direct deps (pinned to the golden-env versions). EXCLUDES all
+# training/tuning/validation/EDA deps (optuna, dvc, great-expectations,
+# ydata-profiling, evidently, fairlearn, xgboost, kaggle, streamlit, jupyter).
+# mlflow-skinny (not full mlflow) loads the baked sklearn model.
+fastapi==0.136.3
+uvicorn[standard]==0.49.0
+pydantic==2.13.4
+mlflow-skinny==3.13.0
+scikit-learn==1.9.0
+catboost==1.2.10
+shap==0.52.0
+pandas==2.3.3
+numpy==2.3.5
