@@ -46,9 +46,39 @@ MODEL_ALIAS = "staging"
 
 # Dataset-drift is declared when the SHARE of drifted columns exceeds this. 0.1 is a
 # documented DEMONSTRATION threshold (a targeted shift moves only a handful of 54
-# features); the real production retrain trigger — dataset-drift share OR PSI on the
-# top SHAP features — is defined in the NEXT gate, not here.
+# features). The retrain trigger (src/monitoring/retrain_trigger.py) consumes the
+# share + the per-feature PSI below.
 DRIFT_SHARE = 0.10
+
+# Top global-SHAP drivers (docs/MODEL_CARD.md). We additionally report PSI for these so
+# the retrain trigger can apply a "PSI > 0.2 on a key feature" rule, not just the
+# dataset-level share. PSI (Population Stability Index): <0.1 stable, 0.1-0.2 moderate,
+# >0.2 significant shift — the industry-standard drift trigger metric.
+TOP_SHAP_FEATURES = [
+    "discharged_home", "discharge_disposition_grp", "diag_1_bucket", "number_inpatient",
+    "medical_specialty", "time_in_hospital", "age_midpoint", "service_utilization",
+]
+
+
+def psi(ref, cur, bins=10, eps=1e-6):
+    """Population Stability Index between a reference and current series.
+
+    Numeric features with enough distinct values are binned into reference deciles;
+    categorical / low-cardinality features use category shares. PSI = Σ (c−r)·ln(c/r)."""
+    ref = pd.Series(ref).dropna()
+    cur = pd.Series(cur).dropna()
+    if pd.api.types.is_numeric_dtype(ref) and ref.nunique() > bins:
+        edges = np.unique(np.quantile(ref, np.linspace(0, 1, bins + 1)))
+        edges[0], edges[-1] = -np.inf, np.inf
+        r = np.histogram(ref, bins=edges)[0] / len(ref)
+        c = np.histogram(cur, bins=edges)[0] / len(cur)
+    else:
+        cats = pd.Index(ref.astype(str).unique()).union(cur.astype(str).unique())
+        r = (ref.astype(str).value_counts().reindex(cats, fill_value=0).to_numpy()) / len(ref)
+        c = (cur.astype(str).value_counts().reindex(cats, fill_value=0).to_numpy()) / len(cur)
+    r = np.clip(r, eps, None)
+    c = np.clip(c, eps, None)
+    return float(np.sum((c - r) * np.log(c / r)))
 
 
 def load_model():
@@ -135,7 +165,12 @@ def run_report(reference, current, feature_names, cat_features, html_path):
     snap = Report([DataDriftPreset(drift_share=DRIFT_SHARE)]).run(reference_data=rds, current_data=cds)
     html_path.parent.mkdir(parents=True, exist_ok=True)
     snap.save_html(str(html_path))
-    return summarize(snap)
+    res = summarize(snap)
+    # PSI on the top-SHAP features (feeds the retrain trigger's key-feature rule).
+    res["top_feature_psi"] = {
+        f: round(psi(ref[f], cur[f]), 4) for f in TOP_SHAP_FEATURES if f in cols
+    }
+    return res
 
 
 def summarize(snap):
@@ -175,6 +210,11 @@ def _print_summary(title, res, expected, shifted_features=None):
         caught = [f for f in shifted_features if res["columns"].get(f, {}).get("drifted")]
         print(f"  intentionally-shifted features: {shifted_features}")
         print(f"    → flagged by detector: {caught}  ({len(caught)}/{len(shifted_features)})")
+    psis = res.get("top_feature_psi", {})
+    if psis:
+        hot = {f: v for f, v in psis.items() if v > 0.2}
+        print(f"  top-SHAP-feature PSI (max={max(psis.values()):.3f}); PSI>0.2: "
+              f"{ {f: v for f, v in sorted(hot.items(), key=lambda x: -x[1])} or 'none'}")
     print(f"  all drifted columns ({len(drifted_cols)}): {drifted_cols}")
 
 

@@ -265,7 +265,7 @@
       },
       "race": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.01620446023968852,
+        "score": 0.016204460239689914,
         "threshold": 0.1,
         "drifted": false
       },
@@ -277,13 +277,13 @@
       },
       "payer_code": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.02704439637223234,
+        "score": 0.027044396372232337,
         "threshold": 0.1,
         "drifted": false
       },
       "medical_specialty": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.05462350707622548,
+        "score": 0.05462350707622518,
         "threshold": 0.1,
         "drifted": false
       },
@@ -313,52 +313,62 @@
       },
       "diag_1_bucket": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.02475866687425373,
+        "score": 0.02475866687425309,
         "threshold": 0.1,
         "drifted": false
       },
       "diag_2_bucket": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.01796553830111166,
+        "score": 0.01796553830111258,
         "threshold": 0.1,
         "drifted": false
       },
       "diag_3_bucket": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.022202959182056222,
+        "score": 0.022202959182057915,
         "threshold": 0.1,
         "drifted": false
       },
       "a1c_state": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.012311267420705388,
+        "score": 0.012311267420707045,
         "threshold": 0.1,
         "drifted": false
       },
       "age_bucket": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.014737694409563311,
+        "score": 0.014737694409563315,
         "threshold": 0.1,
         "drifted": false
       },
       "admission_type_grp": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.019605873168534325,
+        "score": 0.01960587316853662,
         "threshold": 0.1,
         "drifted": false
       },
       "admission_source_grp": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.015538581427973533,
+        "score": 0.015538581427973524,
         "threshold": 0.1,
         "drifted": false
       },
       "discharge_disposition_grp": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.013260023492624805,
+        "score": 0.013260023492628288,
         "threshold": 0.1,
         "drifted": false
       }
+    },
+    "top_feature_psi": {
+      "discharged_home": 0.0,
+      "discharge_disposition_grp": 0.0014,
+      "diag_1_bucket": 0.0052,
+      "number_inpatient": 0.0003,
+      "medical_specialty": 0.0322,
+      "time_in_hospital": 0.0003,
+      "age_midpoint": 0.0023,
+      "service_utilization": 0.0002
     }
   },
   "shifted": {
@@ -604,7 +614,7 @@
       },
       "race": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.01620446023968852,
+        "score": 0.016204460239689914,
         "threshold": 0.1,
         "drifted": false
       },
@@ -616,13 +626,13 @@
       },
       "payer_code": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.02704439637223234,
+        "score": 0.027044396372232337,
         "threshold": 0.1,
         "drifted": false
       },
       "medical_specialty": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.05462350707622548,
+        "score": 0.05462350707622518,
         "threshold": 0.1,
         "drifted": false
       },
@@ -652,31 +662,31 @@
       },
       "diag_1_bucket": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.20792339080474964,
+        "score": 0.20792339080474956,
         "threshold": 0.1,
         "drifted": true
       },
       "diag_2_bucket": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.01796553830111166,
+        "score": 0.01796553830111258,
         "threshold": 0.1,
         "drifted": false
       },
       "diag_3_bucket": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.022202959182056222,
+        "score": 0.022202959182057915,
         "threshold": 0.1,
         "drifted": false
       },
       "a1c_state": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.012311267420705388,
+        "score": 0.012311267420707045,
         "threshold": 0.1,
         "drifted": false
       },
       "age_bucket": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.2587245674490614,
+        "score": 0.25872456744906147,
         "threshold": 0.1,
         "drifted": true
       },
@@ -688,16 +698,26 @@
       },
       "admission_source_grp": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.015538581427973533,
+        "score": 0.015538581427973524,
         "threshold": 0.1,
         "drifted": false
       },
       "discharge_disposition_grp": {
         "method": "Jensen-Shannon distance,threshold=0.1",
-        "score": 0.013260023492624805,
+        "score": 0.013260023492628288,
         "threshold": 0.1,
         "drifted": false
       }
+    },
+    "top_feature_psi": {
+      "discharged_home": 0.0,
+      "discharge_disposition_grp": 0.0014,
+      "diag_1_bucket": 0.3518,
+      "number_inpatient": 13.9775,
+      "medical_specialty": 0.0322,
+      "time_in_hospital": 0.0003,
+      "age_midpoint": 1.9122,
+      "service_utilization": 13.4398
     }
   },
   "detector_validation_pass": true
