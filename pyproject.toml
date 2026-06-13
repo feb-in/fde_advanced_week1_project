@@ -28,3 +28,9 @@ dependencies = [
     "xgboost>=2.0",
     "ydata-profiling>=4.7",
 ]
+
+[dependency-groups]
+ui = [
+    "requests>=2.34.2",
+    "streamlit>=1.58.0",
+]

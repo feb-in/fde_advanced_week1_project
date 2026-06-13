@@ -3566,6 +3566,12 @@ dependencies = [
     { name = "ydata-profiling" },
 ]
 
+[package.dev-dependencies]
+ui = [
+    { name = "requests" },
+    { name = "streamlit" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "catboost", specifier = ">=1.2.10" },
@@ -3591,6 +3597,12 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.29" },
     { name = "xgboost", specifier = ">=2.0" },
     { name = "ydata-profiling", specifier = ">=4.7" },
+]
+
+[package.metadata.requires-dev]
+ui = [
+    { name = "requests", specifier = ">=2.34.2" },
+    { name = "streamlit", specifier = ">=1.58.0" },
 ]
 
 [[package]]
