@@ -292,3 +292,32 @@ so I never traded correctness for size.
 build-and-test pipeline (every change runs the test suite before it can ship), deploy
 it so it's reachable at a URL, then add live monitoring and the fairness/governance
 checks.
+
+---
+
+## Step — Automating the build and shipping it to the cloud
+I set up a pipeline that runs automatically every time I push a change. It does the
+work in a strict order and refuses to cut corners: first it runs the fast input-checks,
+then it builds the container, then it starts that container and tests the *real running
+service* — including the all-important check that the test patient still scores exactly
+0.074595 — and only if every one of those passes does it upload the finished image to
+the cloud's container registry. Tests are the gate: if anything fails, nothing ships.
+This is what "every change is automatically tested before it can go live" actually
+looks like in practice.
+
+The reason this works cleanly is the choice I made earlier to bake the model into the
+image. The automation runs on a fresh, empty machine each time — it has none of my
+local setup — so anything that depended on my laptop would break. Because the model
+travels inside the image, the pipeline can rebuild and test the exact same service from
+nothing but the code.
+
+Getting it green was an honest debugging journey, and each failure was a real-world
+lesson: first a leftover setup step clashed with the build environment; then it
+couldn't talk to the cloud until I wired in credentials the safe way (stored as secrets,
+never written into the code); then the cloud refused the upload until I granted the
+right permissions. Each is exactly the kind of unglamorous plumbing that separates "runs
+on my machine" from "ships automatically" — and it now ships automatically.
+
+**Up next:** write the reflection, then the governance work — a fairness audit across
+age, gender and race, clear explanations for each prediction, an audit trail, and the
+model card — followed by live monitoring for drift.
