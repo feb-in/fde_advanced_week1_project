@@ -9,7 +9,8 @@ import os
 import sys
 from pathlib import Path
 
-import pandas as pd
+# NOTE: pandas is imported lazily inside the helpers that need it, so the Tier-1
+# schema tests (and CI's model-free Tier-1 step) can run with only pydantic.
 
 REPO = Path(__file__).resolve().parents[1]
 for _p in (REPO / "src", REPO / "src" / "models"):
@@ -49,6 +50,7 @@ LOW_RISK = {**SAMPLE, "number_inpatient": 0, "number_emergency": 0,
 
 def raw_record(encounter_id: int) -> dict:
     """Build an API request dict from the raw CSV row, read exactly as training."""
+    import pandas as pd
     raw = pd.read_csv(REPO / "data/raw/diabetic_data.csv",
                       na_values=["?"], keep_default_na=False, low_memory=False)
     r = raw[raw["encounter_id"] == encounter_id].iloc[0]
@@ -66,6 +68,7 @@ def raw_record(encounter_id: int) -> dict:
 
 def training_score(predictor, encounter_id: int) -> float:
     """The training-pipeline score = the model applied to the featurized parquet row."""
+    import pandas as pd
     feat = pd.read_parquet(REPO / "data/featurized/diabetes_features.parquet")
     row = feat[feat["encounter_id"] == encounter_id].iloc[[0]][predictor.feature_names].copy()
     for c in predictor.cat_features:
