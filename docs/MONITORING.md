@@ -67,21 +67,38 @@ The control stays silent. **Detector validation: PASS.** Machine-readable record
 `reports/monitoring/drift_summary.json` (committed); full interactive reports
 `reports/monitoring/drift_{control,shifted}.html` (regenerable, gitignored — ~6 MB each).
 
-## What this feeds next (NOT implemented this gate)
+## Retrain trigger (implemented — `src/monitoring/retrain_trigger.py`)
 
-The drift signals above are the inputs to the **retrain trigger** (next gate). Candidate
-numeric triggers, to be finalized then:
+The drift signals feed a **concrete, deterministic retrain rule** — a pure function over
+a drift summary, so it is testable and is exactly what a scheduled job (or a
+Prometheus/Grafana alert) would evaluate against real scored-traffic batches.
 
-- **dataset-drift share** sustained above a threshold over a rolling window of scored
-  batches, and/or
-- **PSI > 0.2** on the **top SHAP features** (`discharged_home`, `diag_1_bucket`,
-  `number_inpatient`, `medical_specialty`, `age_midpoint` — see `docs/MODEL_CARD.md`),
-  and/or
-- **prediction drift** (score-distribution shift) beyond a bound, and/or
-- **labelled-feedback PR-AUC** falling below a floor once outcomes are observed.
+**Retrain if ANY of:**
 
-These map to the project's three day-one thresholds — **keep / retrain / retire**. The
-alert wiring (Prometheus/Grafana) and the concrete trigger numbers are the next session.
+| # | Condition | Threshold | Why this number |
+|---|---|---|---|
+| 1 | dataset-drift share | **> 0.10** | mirrors the detector's `drift_share` — one consistent dataset-drift line |
+| 2 | PSI on **any top-SHAP feature** | **> 0.20** | standard "significant population shift" line (<0.1 stable, 0.1–0.2 moderate, >0.2 act); applied to the model's own top drivers |
+| 3 | PR-AUC on freshly-labelled data | **< 0.15** | ground-truth backstop ≈ 75% of the 0.207 test AUPRC; only evaluable once outcomes exist |
+
+These map to the project's three day-one thresholds — **keep / retrain / retire**. Drift
+(rules 1–2) is the leading indicator; the labelled PR-AUC floor (rule 3) is the
+definitive backstop.
+
+**Validated against the two batches from the drift run:**
+
+| batch | decision | tripped rules |
+|---|---|---|
+| control (unshifted) | **keep model** | none |
+| shifted (intentional) | **RETRAIN** | share 0.145 > 0.10; PSI>0.2 on `number_inpatient` (13.98), `service_utilization` (13.44), `age_midpoint` (1.91), `diag_1_bucket` (0.35) |
+
+Silent on control, fires on shifted — `[trigger validation] PASS`.
+Run: `uv run python src/monitoring/retrain_trigger.py`.
+
+**Wired to alerting/dashboards:** the live API metrics drive a Grafana dashboard and a
+Prometheus alert rule (see `docs/SERVING.md` → Observability stack). A score-distribution
+panel would need a new prediction-score histogram in the app (noted as a follow-up, not
+built — it would touch the serving image).
 
 ## Run
 
