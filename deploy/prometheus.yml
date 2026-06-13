@@ -5,6 +5,11 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+# Alerting rules (deploy/alerts.yml) — evaluated every evaluation_interval. No
+# Alertmanager is wired; rules still load and show state in Prometheus → Alerts.
+rule_files:
+  - /etc/prometheus/alerts.yml
+
 scrape_configs:
   - job_name: readmission-api
     metrics_path: /metrics

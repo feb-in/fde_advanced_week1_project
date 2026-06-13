@@ -30,6 +30,7 @@ services:
     container_name: readmission-prometheus
     volumes:
       - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:Z   # scrapes api:8000/metrics
+      - ./deploy/alerts.yml:/etc/prometheus/alerts.yml:Z           # alerting rules
     ports:
       - "9090:9090"
     depends_on:

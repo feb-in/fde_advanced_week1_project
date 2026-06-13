@@ -1,0 +1,40 @@
+# Prometheus alerting rules for the readmission API.
+# These evaluate continuously and show in Prometheus → Alerts (inactive → pending →
+# firing). No Alertmanager / SMTP / Slack is wired (not required for this gate): a
+# defined, firing-capable rule that loads and evaluates satisfies the deliverable.
+groups:
+  - name: readmission-api-availability
+    rules:
+      # Page a human if the API stops being scraped (process down / unreachable).
+      - alert: APIDown
+        expr: up{job="readmission-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Readmission API target is down"
+          description: "Prometheus cannot scrape {{ $labels.instance }} for >1m."
+
+      # Notify if the 5xx error share exceeds 5% over 5m (the primary SLO breach).
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status="5xx"}[5m]))
+            / clamp_min(sum(rate(http_requests_total[5m])), 1) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API 5xx error rate >5%"
+          description: "5xx share has exceeded 5% of requests for 2m."
+
+      # Notify on latency regression: p95 request latency above 1s for 5m.
+      - alert: HighP95Latency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API p95 latency >1s"
+          description: "95th-percentile request latency has exceeded 1s for 5m."

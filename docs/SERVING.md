@@ -122,13 +122,25 @@ podman compose down                          # tear the stack down
 | Service | URL | Check |
 |---|---|---|
 | API | http://localhost:8000 | `/health`, `/predict`, `/metrics` |
-| Prometheus | http://localhost:9090 | Status → Targets: `readmission-api` = **UP** |
-| Grafana | http://localhost:3000 | login `admin` / `admin`; Prometheus datasource pre-wired |
+| Prometheus | http://localhost:9090 | Status → Targets: `readmission-api` = **UP**; Status → Rules: 3 alerts loaded |
+| Grafana | http://localhost:3000 | login `admin` / `admin`; **"Readmission API — Observability"** dashboard auto-loads |
 
-What's **set up** (this gate): real metrics emitting, Prometheus scraping the target,
-Grafana connected to Prometheus. What's **deferred** to the next gate: Grafana dashboard
-panels (latency, req/s, error rate, score distribution), an Evidently drift report, ≥1
-alert, and a concrete numeric retrain trigger.
+**Dashboard** (`deploy/grafana/provisioning/dashboards/readmission.json`, auto-provisioned)
+panels over the real metrics: request rate by handler, p50/p95 latency, 5xx error rate,
+total predictions served, requests/sec by status class. A **score-distribution** panel is
+a documented follow-up — it would need a new prediction-score histogram in the app, which
+would touch the slim serving image, so it is intentionally not added.
+
+**Alerts** (`deploy/alerts.yml`, loaded via `rule_files` in `deploy/prometheus.yml`) —
+three firing-capable Prometheus rules, visible at Prometheus → Alerts (inactive when
+healthy): **APIDown** (target unscrapeable >1m, critical), **HighErrorRate** (5xx share
+>5% for 2m), **HighP95Latency** (p95 >1s for 5m). No Alertmanager/notification channel is
+wired (not required this gate); the rules load, evaluate, and show state in the UI.
+
+**Drift + retrain trigger** are the offline half of observability — see `docs/MONITORING.md`
+(`src/monitoring/drift.py` validates the detector; `src/monitoring/retrain_trigger.py`
+is the concrete keep/retrain rule).
 
 ## Deferred to later gates
-- Grafana dashboards + Evidently drift + alerting + retrain trigger (Stage 6, next session).
+- A score-distribution Grafana panel (needs a prediction-score histogram in the app).
+- Alertmanager + a real notification channel (SMTP/Slack) for the alert rules.
