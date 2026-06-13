@@ -167,8 +167,17 @@ READMISSION_API_URL=http://localhost:8000 uv run --group ui \
   payer code, admitting specialty, and the other 19 diabetes-drug fields (default `No`).
 - Pre-filled with a realistic sample patient → one click runs the demo. Errors degrade
   gracefully (422 → "check these fields"; unreachable API → "API not reachable at <url>").
-- **Verified:** the displayed probability is the API's number unaltered — the UI's
-  `/predict` call and a direct POST both return `0.074595` for the sample patient.
+- **Load random patient** (`src/ui/sample_data.py`) pulls a real row from the **seed-42
+  held-out test split** (data the model never trained on; reproduced without importing the
+  training stack), fills the form from its raw fields, **still scores it through the API**,
+  and shows **ground truth vs prediction** with a ✓/✗ — false positives/negatives are shown
+  honestly, not hidden. Reading the test data here is a **display-only UI convenience**, not
+  a serving dependency; the UI never scores locally.
+- A persistent **DEMONSTRATION / BETA** banner states this is not a deployed medical device
+  and not for real clinical decisions, tying it to the human-in-the-loop stance.
+- **Verified (no skew):** the displayed probability is the API's number unaltered — the
+  UI's `/predict` call and a direct POST return the **same** score (sample patient
+  `0.074595`; every random held-out patient matches exactly).
 
 ## Deferred to later gates
 - A score-distribution Grafana panel (needs a prediction-score histogram in the app).
