@@ -1,11 +1,13 @@
-# Streamlit theme for the EDA dashboard (EDA/dashboard.py).
-# Kept minimal and light so charts (blue = count, red = readmit-rate) read clearly.
+# Shared Streamlit theme (applies to both the readmission UI src/ui/app_streamlit.py
+# and the EDA dashboard EDA/dashboard.py, since both run from the repo root).
+# Dark theme. NOTE: `base` alone is not enough — the explicit colour options below are
+# what actually paint the app, so they must all be dark or the background stays white.
 [theme]
-base = "light"
-primaryColor = "#2563eb"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f1f5f9"
-textColor = "#0f172a"
+base = "dark"
+primaryColor = "#4a90d9"
+backgroundColor = "#0b0e14"
+secondaryBackgroundColor = "#161a23"
+textColor = "#e6e8eb"
 font = "sans serif"
 
 [server]
