@@ -41,8 +41,9 @@ data validation, modeling, tuning, calibration, serving, packaging) complete.
   **BAKED into the image** (`deploy/export_model.py` → `deploy/model_bundle/`),
   because the MLflow registry stores absolute host paths that don't resolve
   in-container. The **registry alias stays the logical rollback handle** (kept in
-  `src/app/model.py` dual-load code + bundle meta). Image ≈ 7.4 GB (full pinned
-  deps; a serving-only dep group would slim it — open item).
+  `src/app/model.py` dual-load code + bundle meta). Image **≈ 943 MB** — slim,
+  serving-only deps (`deploy/requirements-serve.txt` via multi-stage build; mlflow
+  client is `mlflow-skinny`); training/EDA deps excluded.
 
 **EXACT next gate (do NOT skip ahead):** **ECR push + GitHub Actions CI/CD →
 AWS Fargate deploy** → then **Stage 6 monitoring** (Prometheus/Grafana/Evidently)

@@ -55,8 +55,9 @@ Do **not** skip ahead — finish CI/CD + deploy before monitoring.
 3. **Confirm the baked-in model approach** is acceptable as the deploy path (it is the
    chosen approach; the alias indirection is preserved). If a live registry is wanted
    in-cluster instead, that's a Stage-6+ decision.
-4. **Image size ≈ 7.4 GB** (full pinned dep set). A serving-only dependency group
-   would slim it materially before pushing to ECR — worth doing as part of CI/CD.
+4. ~~Image size~~ **RESOLVED.** Image slimmed to **≈ 943 MB** (from 7.35 GB) via a
+   serving-only pinned set (`deploy/requirements-serve.txt`, `mlflow-skinny`) in a
+   multi-stage build — golden score unchanged (0.074595). Ready to push to ECR.
 
 ## The invariant to re-verify BEFORE building anything
 
