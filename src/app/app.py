@@ -69,6 +69,7 @@ def health() -> HealthResponse:
         model_alias=p.model_alias,
         threshold=p.threshold,
         calibration_method=p.calibration_method,
+        load_source=p.load_source,
     )
 
 

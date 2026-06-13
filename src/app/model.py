@@ -34,19 +34,16 @@ class Predictor:
     """Holds the loaded model, threshold, feature contract, and SHAP explainer."""
 
     def __init__(self):
-        import mlflow
         import shap
 
-        mlflow.set_tracking_uri(TRACKING_URI)
-        self.model_name = MODEL_NAME
-        self.model_alias = MODEL_ALIAS
-        client = mlflow.tracking.MlflowClient()
-        mv = client.get_model_version_by_alias(MODEL_NAME, MODEL_ALIAS)
-        self.version = mv.version
-        self.threshold = float(mv.tags["operating_threshold"])
-        self.calibration_method = mv.tags.get("calibration_method", "unknown")
-
-        self.model = mlflow.sklearn.load_model(f"models:/{MODEL_NAME}@{MODEL_ALIAS}")
+        # Two load paths, ONE model identity. Local/dev loads by registry alias;
+        # the container loads a baked bundle (the registry isn't present in-image).
+        # Either way the alias + threshold tag are the source of truth.
+        bundle = os.environ.get("MODEL_BUNDLE_DIR")
+        if bundle and Path(bundle).exists():
+            self._load_baked(Path(bundle))
+        else:
+            self._load_from_registry()
 
         # The model defines its own inputs — feature order + which are categorical.
         base = getattr(self.model.calibrated_classifiers_[0], "estimator", None) \
@@ -55,6 +52,33 @@ class Predictor:
         self.feature_names = list(self._cb.feature_names_)
         self.cat_features = list(base.cat_features)
         self.explainer = shap.TreeExplainer(self._cb)
+
+    def _load_from_registry(self):
+        """Local/dev: load BY ALIAS from the MLflow registry (rollback = alias swap)."""
+        import mlflow
+        mlflow.set_tracking_uri(TRACKING_URI)
+        self.load_source = "registry"
+        self.model_name = MODEL_NAME
+        self.model_alias = MODEL_ALIAS
+        mv = mlflow.tracking.MlflowClient().get_model_version_by_alias(MODEL_NAME, MODEL_ALIAS)
+        self.version = mv.version
+        self.threshold = float(mv.tags["operating_threshold"])
+        self.calibration_method = mv.tags.get("calibration_method", "unknown")
+        self.model = mlflow.sklearn.load_model(f"models:/{MODEL_NAME}@{MODEL_ALIAS}")
+
+    def _load_baked(self, bundle: Path):
+        """Container: model baked by deploy/export_model.py. The alias recorded in
+        the bundle stays the LOGICAL rollback handle; model+threshold travel together."""
+        import json
+        import mlflow
+        meta = json.loads((bundle / "model_meta.json").read_text())
+        self.load_source = "baked-bundle"
+        self.model_name = meta["model_name"]
+        self.model_alias = meta["alias"]
+        self.version = meta["version"]
+        self.threshold = float(meta["threshold"])
+        self.calibration_method = meta.get("calibration_method", "unknown")
+        self.model = mlflow.sklearn.load_model(str(bundle / "model"))
 
     def _to_model_frame(self, record: dict) -> pd.DataFrame:
         """Raw record → exact model feature row (engineered, reindexed, cats as str)."""

@@ -123,4 +123,5 @@ class HealthResponse(BaseModel):
     model_alias: str
     threshold: float
     calibration_method: str
+    load_source: str
     model_config = ConfigDict(protected_namespaces=())
