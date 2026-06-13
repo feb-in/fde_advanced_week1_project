@@ -141,6 +141,35 @@ wired (not required this gate); the rules load, evaluate, and show state in the 
 (`src/monitoring/drift.py` validates the detector; `src/monitoring/retrain_trigger.py`
 is the concrete keep/retrain rule).
 
+## Streamlit UI (optional demo front-end)
+
+A clinical decision-support front-end — `src/ui/app_streamlit.py`, a **thin HTTP client**
+of `/predict`. It **computes nothing**: it collects raw patient fields, POSTs them to the
+API, and renders the response (probability, the API's flag + threshold, and the top SHAP
+factors as a diverging bar chart). All featurization/scoring stays server-side — doing it
+in the UI would reintroduce train/serve skew. The form is **derived from
+`src/contracts/input_contract.json`** so it matches the API schema exactly; the only HTTP
+code lives in `src/ui/api_client.py`.
+
+```bash
+# the API must be running first (local or container); then, in a separate process:
+READMISSION_API_URL=http://localhost:8000 uv run --group ui \
+    streamlit run src/ui/app_streamlit.py        # opens http://localhost:8501
+```
+
+- **API URL** from `READMISSION_API_URL` (default `http://localhost:8000`).
+- **Deps** are a separate **`ui` dependency group** (`streamlit`, `requests`) — **not** in
+  the slim serving image; the UI is its own process.
+- **Main view** (high-signal fields): Demographics (race, sex, age), Prior utilization
+  (inpatient/emergency/outpatient), This admission (type/source/discharge codes, length of
+  stay, medications, lab/other procedures, diagnoses count), Labs & meds (A1C, max glucose,
+  diabetesMed, change, insulin, metformin), Diagnoses (diag_1/2/3). **Advanced expander:**
+  payer code, admitting specialty, and the other 19 diabetes-drug fields (default `No`).
+- Pre-filled with a realistic sample patient → one click runs the demo. Errors degrade
+  gracefully (422 → "check these fields"; unreachable API → "API not reachable at <url>").
+- **Verified:** the displayed probability is the API's number unaltered — the UI's
+  `/predict` call and a direct POST both return `0.074595` for the sample patient.
+
 ## Deferred to later gates
 - A score-distribution Grafana panel (needs a prediction-score histogram in the app).
 - Alertmanager + a real notification channel (SMTP/Slack) for the alert rules.
