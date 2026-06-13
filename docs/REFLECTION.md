@@ -100,8 +100,13 @@ documented dial-down to recall 0.40 / 22% flagged exists for tighter capacity.
   drugs, coding practice, and discharge workflows. The model encodes how those
   hospitals behaved, and would need revalidation — ideally retraining — on
   current, local data before clinical use.
-- **Fairness is not yet established.** No subgroup metrics have been computed. Until
-  the Fairlearn audit reports recall/PR-AUC gaps across age, gender, and race, the
-  honest statement is that this model's fairness is **unknown**, and it should not be
-  deployed against any protected group on the assumption that one global threshold is
-  equitable.
+- **Fairness is measured, and it is mixed** (`docs/FAIRNESS_AUDIT.md`). The single
+  global 0.091 threshold is **decisively age-disparate** — recall gap 0.69, catching
+  ~69% of readmission-bound 80-somethings but only ~28% of 40-somethings — which is
+  *part* legitimate (prevalence genuinely rises with age) and *part* real inequity (the
+  model also ranks worse for the 40–60 band, so it systematically misses middle-aged
+  readmits). It is **effectively fair by gender** (recall gap 0.05) and shows **no large
+  well-supported racial disparity**, though the small Asian/Hispanic/Other cells are too
+  noisy to certify parity. The open question is now answered: one global threshold is
+  *not* equitable across age, which is why per-subgroup thresholds and weak-band
+  human-in-the-loop review are the next fairness work — not a clean bill of health.
