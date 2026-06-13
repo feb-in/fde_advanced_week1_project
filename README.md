@@ -80,6 +80,7 @@ mlflow ui --backend-store-uri sqlite:///mlflow.db   # inspect runs → http://lo
 # 4. serve + monitor — the calibrated model is COMMITTED in deploy/model_bundle/ and baked
 #    into the image, so the container serves the golden model directly (no training/export):
 podman compose up --build -d  # API :8000 · Prometheus :9090 · Grafana :3000 (admin/admin)
+#    (fresh box & "podman.sock … no such file"? → see docs/SERVING.md: `systemctl --user start podman.socket`)
 curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' \
      --data-binary @tests/sample_request.json           # committed bundle → 0.074595 (see note)
 
