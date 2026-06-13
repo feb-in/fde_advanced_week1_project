@@ -321,3 +321,38 @@ on my machine" from "ships automatically" — and it now ships automatically.
 **Up next:** write the reflection, then the governance work — a fairness audit across
 age, gender and race, clear explanations for each prediction, an audit trail, and the
 model card — followed by live monitoring for drift.
+
+---
+
+## Step — Making it trustworthy, watchable, and easy to show
+With the service shipping automatically, I turned to the work that makes a model
+*responsible* rather than just functional. I audited fairness across age, gender and
+race and reported it honestly: the model treats the sexes evenhandedly, the racial
+differences are small and mostly down to tiny sample sizes, but a single cutoff is much
+better at catching readmissions in the elderly than in middle-aged patients — a real gap
+I wrote down rather than hid. I added clear per-patient explanations (which factors
+pushed a given prediction up or down), an audit log that records every scored request so
+any decision can be traced later, and a model card that states plainly what the model is
+for, how well it does, where it fails, and that it must never be the sole decider — a
+clinician reviews every case.
+
+Then I made the running service *watchable*. The API now publishes live operational
+metrics, and I stood up the standard monitoring pair — Prometheus to collect them and
+Grafana to chart them — with a dashboard showing request rate, response times, error
+rate and how many predictions have been served, plus alerts that would warn a human if
+the service started erroring or slowing down. Separately, I built a drift detector: it
+compares fresh data against the patient mix the model learned from. To prove it actually
+works I fed it a deliberately shifted batch (an older, sicker population) and confirmed
+it lit up, while an unchanged batch stayed quiet — a detector that only cries wolf is
+worthless. That feeds a concrete, written retrain rule: specific numbers that say "the
+world has moved enough — it's time to retrain," not a vague intention.
+
+Finally, I built a simple demonstration interface so the whole thing can be *seen*. It's
+a thin front-end that just asks the API for a prediction — it does no thinking of its own,
+which keeps it honest. You can fill in a patient, or load a real past patient the model
+never trained on and watch the model's guess line up against what actually happened to
+them, marked right or wrong — including the wrong calls, shown openly. It carries a clear
+"demonstration, not a medical device" banner throughout.
+
+**Up next:** a final clean-checkout rehearsal — make sure someone starting from nothing
+can rebuild and run everything from the README — then push it all up and submit.
