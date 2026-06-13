@@ -144,7 +144,8 @@ real file that belongs in it is written.
 **Where new code lands as you build it (create each on first use):**
 
 ```
-src/data/        clean.py                            # reproducible cleaning → data/processed/
+src/contracts/   data_contract.py · input_contract.json  # DATA CONTRACT (source of truth)
+src/data/        clean.py · validate.py              # cleaning → data/processed/; GX batch suites
 src/features/    build_features.py                  # Strack-9 ICD-9, engineered features
 src/models/      train.py · evaluate.py             # LR baseline + CatBoost + Optuna, MLflow
 src/app/         app.py · schemas.py                # FastAPI /predict (score + SHAP), /health  (NOTE: this is the serving folder — named src/app/, NOT src/serving/)
@@ -152,10 +153,16 @@ src/monitoring/  drift.py · retrain_trigger.py      # Evidently report + numeri
 src/governance/  fairness.py · explain.py           # Fairlearn MetricFrame + SHAP helpers
 deploy/          Containerfile · compose.yaml · prometheus.yml · grafana/
 tests/           test_smoke.py
-docs/            FEATURE_LOG.md · MODEL_CARD.md · THRESHOLD_DECISION.md
+docs/            FEATURE_LOG.md · MODEL_CARD.md · THRESHOLD_DECISION.md · DATA_VALIDATION.md
 notebooks/       exploration only — never the source of truth
 .dvc/ · dvc.yaml                                    # created by `dvc init`
 ```
+
+> **`src/contracts/` is the data contract — the single source of truth for input
+> rules.** `data_contract.py` builds the Great Expectations suites (`src/data/validate.py`)
+> AND exports `input_contract.json`, which the serving Pydantic schema (`src/app/`)
+> and Stage-6 drift both read. Build the contract once, read it three ways. See
+> `docs/DATA_VALIDATION.md`.
 
 > **All real logic lives in importable, re-runnable scripts** under `src/` or
 > `EDA/` — never hidden in a notebook.
