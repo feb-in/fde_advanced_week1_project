@@ -12,11 +12,12 @@ The snapshot stores, per training row:
   * `target` — kept for reference/target-drift (NOTE: labels do NOT exist at serving
     time; target drift is only computable in this offline simulation).
 
-Output: `data/monitoring/reference.parquet`, DVC-tracked (it is a data artifact, not code).
+Output: `data/monitoring/reference.parquet` — produced by the `make_reference` DVC stage
+(see dvc.yaml), so it is regenerable with `dvc repro` rather than tracked via `dvc add`.
 
 Run:
-    uv run python src/monitoring/make_reference.py
-    dvc add data/monitoring/reference.parquet
+    uv run python src/monitoring/make_reference.py   # direct
+    dvc repro make_reference                          # via the pipeline (preferred)
 """
 from __future__ import annotations
 
@@ -60,7 +61,7 @@ def main():
           f"({len(feature_names)} features + prediction + target)")
     print(f"[reference] mean calibrated score (baseline)={ref['prediction'].mean():.4f}  "
           f"positive rate={ref['target'].mean():.4f}")
-    print("[next] dvc add data/monitoring/reference.parquet")
+    print("[ok] reference.parquet written — tracked by the 'make_reference' DVC stage")
 
 
 if __name__ == "__main__":

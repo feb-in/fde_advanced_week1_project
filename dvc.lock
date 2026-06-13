@@ -81,3 +81,27 @@ stages:
       hash: md5
       md5: 3e3fffb345cbaacf5e2683926d71a00e
       size: 111
+  make_reference:
+    cmd: uv run python src/monitoring/make_reference.py
+    deps:
+    - path: data/featurized/diabetes_features.parquet
+      hash: md5
+      md5: 132afdcbc049063c3a327b3ee62c7dcc
+      size: 1993528
+    - path: src/models/evaluate.py
+      hash: md5
+      md5: ec331a938d3044df8519f8d7c8d86dcb
+      size: 5800
+    - path: src/models/train.py
+      hash: md5
+      md5: 873a39bd2206fc464b3b58163dbfd2d1
+      size: 12975
+    - path: src/monitoring/make_reference.py
+      hash: md5
+      md5: ec85f55d3c882b41b0b9b0315e3836fc
+      size: 2917
+    outs:
+    - path: data/monitoring/reference.parquet
+      hash: md5
+      md5: 56cd30c38e7987115da69a39d18458d4
+      size: 1348143

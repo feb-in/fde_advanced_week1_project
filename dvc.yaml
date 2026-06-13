@@ -41,3 +41,21 @@ stages:
     outs:
       - reports/validation/processed_status.json:
           cache: false
+  make_reference:
+    # Drift baseline (Stage 6 / observability): the seed-42 TRAIN split scored by the
+    # calibrated model → data/monitoring/reference.parquet (Evidently's reference).
+    #
+    # IMPLICIT RUNTIME INPUT — NOT a declared dep: the model is loaded from the MLflow
+    # registry (models:/readmission-catboost-calibrated@staging). mlflow.db / mlruns are
+    # local, gitignored, and carry absolute host paths, so they are not clean versioned
+    # DVC artifacts and are deliberately not listed as deps. This stage therefore assumes
+    # the @staging model is already registered — i.e. src/models/train.py + calibrate.py
+    # have run. The deps below are the clean, versioned file inputs only.
+    cmd: uv run python src/monitoring/make_reference.py
+    deps:
+      - src/monitoring/make_reference.py
+      - src/models/train.py
+      - src/models/evaluate.py
+      - data/featurized/diabetes_features.parquet
+    outs:
+      - data/monitoring/reference.parquet
