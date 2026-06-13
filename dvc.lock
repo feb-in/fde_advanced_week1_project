@@ -8,6 +8,10 @@ stages:
       hash: md5
       md5: 502f0cc004e4cf71536ec2e61596e42f
       size: 19159383
+    - path: reports/validation/raw_status.json
+      hash: md5
+      md5: a478fa6ceb41db23612f423f31bf6a34
+      size: 105
     - path: src/data/clean.py
       hash: md5
       md5: ba9ec1685ea70d060c712e1eca2fb895
@@ -35,3 +39,45 @@ stages:
       hash: md5
       md5: 132afdcbc049063c3a327b3ee62c7dcc
       size: 1993528
+  validate_raw:
+    cmd: uv run python src/data/validate.py --suite raw --status 
+      reports/validation/raw_status.json
+    deps:
+    - path: data/raw/diabetic_data.csv
+      hash: md5
+      md5: 502f0cc004e4cf71536ec2e61596e42f
+      size: 19159383
+    - path: src/contracts/data_contract.py
+      hash: md5
+      md5: 9b2e50cc7373a1baafe85ccf99f2ec02
+      size: 8332
+    - path: src/data/validate.py
+      hash: md5
+      md5: 495728db4accd90fa7cae8c0228ad574
+      size: 8796
+    outs:
+    - path: reports/validation/raw_status.json
+      hash: md5
+      md5: a478fa6ceb41db23612f423f31bf6a34
+      size: 105
+  validate_processed:
+    cmd: uv run python src/data/validate.py --suite processed --status 
+      reports/validation/processed_status.json
+    deps:
+    - path: data/featurized/diabetes_features.parquet
+      hash: md5
+      md5: 132afdcbc049063c3a327b3ee62c7dcc
+      size: 1993528
+    - path: src/contracts/data_contract.py
+      hash: md5
+      md5: 9b2e50cc7373a1baafe85ccf99f2ec02
+      size: 8332
+    - path: src/data/validate.py
+      hash: md5
+      md5: 495728db4accd90fa7cae8c0228ad574
+      size: 8796
+    outs:
+    - path: reports/validation/processed_status.json
+      hash: md5
+      md5: 3e3fffb345cbaacf5e2683926d71a00e
+      size: 111

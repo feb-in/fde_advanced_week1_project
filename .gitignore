@@ -47,6 +47,10 @@ kaggle.json
 # reference/ is an offline wget mirror of mlflow.org docs (~11 MB) — local only.
 reference/
 
+# --- Great Expectations project scratch (suites/checkpoints are rebuilt in code
+#     from src/contracts; data-docs HTML is a regenerated artifact) ---
+gx/
+
 # --- os / editor ---
 .DS_Store
 .idea/

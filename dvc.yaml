@@ -1,12 +1,28 @@
 # DVC pipeline. `dvc repro` runs any stage whose deps changed and re-tracks its
 # outs by hash (recorded in dvc.lock). The raw CSV is itself DVC-tracked (dvc add),
 # so this stage's dependency chain is fully versioned end to end.
+#
+# Great Expectations validation runs as gating checkpoints: validate_raw guards the
+# INPUT before cleaning (clean depends on its success marker, so it cannot run until
+# validation passes), and validate_processed guards the featurized OUTPUT. A failed
+# expectation exits non-zero, fails the stage, and halts the whole pipeline — a
+# broken data contract stops a retrain instead of silently shipping bad data.
 stages:
+  validate_raw:
+    cmd: uv run python src/data/validate.py --suite raw --status reports/validation/raw_status.json
+    deps:
+      - src/data/validate.py
+      - src/contracts/data_contract.py
+      - data/raw/diabetic_data.csv
+    outs:
+      - reports/validation/raw_status.json:
+          cache: false
   clean:
     cmd: uv run python src/data/clean.py --raw data/raw/diabetic_data.csv --out data/processed/diabetes_clean.parquet
     deps:
       - src/data/clean.py
       - data/raw/diabetic_data.csv
+      - reports/validation/raw_status.json
     outs:
       - data/processed/diabetes_clean.parquet
   featurize:
@@ -16,3 +32,12 @@ stages:
       - data/processed/diabetes_clean.parquet
     outs:
       - data/featurized/diabetes_features.parquet
+  validate_processed:
+    cmd: uv run python src/data/validate.py --suite processed --status reports/validation/processed_status.json
+    deps:
+      - src/data/validate.py
+      - src/contracts/data_contract.py
+      - data/featurized/diabetes_features.parquet
+    outs:
+      - reports/validation/processed_status.json:
+          cache: false
