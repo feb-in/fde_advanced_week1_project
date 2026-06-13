@@ -1,0 +1,76 @@
+artifact_path: /home/febin/projects/fde/advanced_project_week1/readmission-starter/mlruns/1/models/m-ab1f8f2f4fb54a82875e6cbbb16ac15c/artifacts
+flavors:
+  python_function:
+    code: code
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.12
+  sklearn:
+    code: code
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.9.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.13.0
+model_id: m-ab1f8f2f4fb54a82875e6cbbb16ac15c
+model_size_bytes: 3691794
+model_uuid: m-ab1f8f2f4fb54a82875e6cbbb16ac15c
+prompts: null
+run_id: da2913a2b1a540c5a579bd846aad2cb3
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "string", "name": "race", "required": true}, {"type": "string",
+    "name": "gender", "required": true}, {"type": "long", "name": "time_in_hospital",
+    "required": true}, {"type": "string", "name": "payer_code", "required": true},
+    {"type": "string", "name": "medical_specialty", "required": true}, {"type": "long",
+    "name": "num_lab_procedures", "required": true}, {"type": "long", "name": "num_procedures",
+    "required": true}, {"type": "long", "name": "num_medications", "required": true},
+    {"type": "long", "name": "number_outpatient", "required": true}, {"type": "long",
+    "name": "number_emergency", "required": true}, {"type": "long", "name": "number_inpatient",
+    "required": true}, {"type": "long", "name": "number_diagnoses", "required": true},
+    {"type": "string", "name": "max_glu_serum", "required": true}, {"type": "string",
+    "name": "A1Cresult", "required": true}, {"type": "integer", "name": "metformin",
+    "required": true}, {"type": "integer", "name": "repaglinide", "required": true},
+    {"type": "integer", "name": "nateglinide", "required": true}, {"type": "integer",
+    "name": "chlorpropamide", "required": true}, {"type": "integer", "name": "glimepiride",
+    "required": true}, {"type": "integer", "name": "acetohexamide", "required": true},
+    {"type": "integer", "name": "glipizide", "required": true}, {"type": "integer",
+    "name": "glyburide", "required": true}, {"type": "integer", "name": "tolbutamide",
+    "required": true}, {"type": "integer", "name": "pioglitazone", "required": true},
+    {"type": "integer", "name": "rosiglitazone", "required": true}, {"type": "integer",
+    "name": "acarbose", "required": true}, {"type": "integer", "name": "miglitol",
+    "required": true}, {"type": "integer", "name": "troglitazone", "required": true},
+    {"type": "integer", "name": "tolazamide", "required": true}, {"type": "integer",
+    "name": "insulin", "required": true}, {"type": "integer", "name": "glyburide-metformin",
+    "required": true}, {"type": "integer", "name": "glipizide-metformin", "required":
+    true}, {"type": "integer", "name": "metformin-rosiglitazone", "required": true},
+    {"type": "integer", "name": "metformin-pioglitazone", "required": true}, {"type":
+    "string", "name": "change", "required": true}, {"type": "string", "name": "diabetesMed",
+    "required": true}, {"type": "string", "name": "diag_1_bucket", "required": true},
+    {"type": "string", "name": "diag_2_bucket", "required": true}, {"type": "string",
+    "name": "diag_3_bucket", "required": true}, {"type": "integer", "name": "diabetes_primary",
+    "required": true}, {"type": "integer", "name": "n_diabetes_diag", "required":
+    true}, {"type": "integer", "name": "n_med_changes", "required": true}, {"type":
+    "integer", "name": "n_meds_used", "required": true}, {"type": "integer", "name":
+    "a1c_measured", "required": true}, {"type": "integer", "name": "glu_measured",
+    "required": true}, {"type": "string", "name": "a1c_state", "required": true},
+    {"type": "integer", "name": "service_utilization", "required": true}, {"type":
+    "integer", "name": "inpatient_ge_2", "required": true}, {"type": "integer", "name":
+    "age_midpoint", "required": true}, {"type": "string", "name": "age_bucket", "required":
+    true}, {"type": "string", "name": "admission_type_grp", "required": true}, {"type":
+    "string", "name": "admission_source_grp", "required": true}, {"type": "string",
+    "name": "discharge_disposition_grp", "required": true}, {"type": "integer", "name":
+    "discharged_home", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-06-13 00:10:27.934315'

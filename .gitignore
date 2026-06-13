@@ -56,5 +56,10 @@ gx/
 .idea/
 .vscode/
 
-# --- baked model bundle (build artifact; regenerate via deploy/export_model.py) ---
-deploy/model_bundle/
+# --- baked model bundle: TRACKED on purpose ---
+# The container bakes this in at build time, and CI builds the image WITHOUT any
+# MLflow registry access (stateless runner) — so the bundle must be in the repo.
+# Regenerate from the @staging alias with: uv run python deploy/export_model.py
+# (the negation overrides the global *.pkl rule above for model.pkl).
+!deploy/model_bundle/**
+deploy/model_bundle/**/__pycache__/

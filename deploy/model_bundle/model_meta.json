@@ -1,0 +1,7 @@
+{
+  "model_name": "readmission-catboost-calibrated",
+  "alias": "staging",
+  "version": 1,
+  "threshold": 0.091046,
+  "calibration_method": "sigmoid"
+}
