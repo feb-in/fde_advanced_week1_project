@@ -6,9 +6,9 @@ Predicts, **at discharge**, the probability a diabetic patient is readmitted
 within 30 days — and takes that prediction all the way to a **running, monitored,
 governed service**, not a notebook model.
 
-> **Start here:** `CLAUDE.md` is the build manual (read automatically by Claude
-> Code). Then `docs/PROJECT_BRIEF.md` (problem + graded traps) and
-> `docs/GOALS.md` (the authoritative staged plan and definition of done).
+> **Start here:** `docs/PROJECT_BRIEF.md` (problem + graded traps),
+> `docs/GOALS.md` (the authoritative staged plan and definition of done), and
+> `docs/RESUME_HERE.md` (current status + the reproduction build order).
 
 ## What this system includes
 

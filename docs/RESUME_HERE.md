@@ -1,7 +1,7 @@
 # RESUME HERE — Submission Checklist
 
 *Single source for the final stretch. Everything graded is built and verified; what
-remains is **verification + push**, not building. Read this + `CLAUDE.md` §0.5.*
+remains is **verification + push**, not building.*
 
 ## Status: all stages complete — final-submission state
 
@@ -90,7 +90,7 @@ Golden: container/local `/predict` for encounter 12522 must return **0.074595**
 (`@ staging`, threshold 0.091046). If either breaks, stop and fix first.
 
 ## Key references
-- `CLAUDE.md` §0.5 — current state. `docs/GOALS.md` — staged plan (all ticked).
+- `docs/GOALS.md` — the authoritative staged plan + definition of done (all ticked).
 - `docs/SERVING.md` — API + stack + UI. `docs/MONITORING.md` — drift + retrain trigger.
 - `docs/MODEL_CARD.md`, `docs/FAIRNESS_AUDIT.md`, `docs/REFLECTION.md` — governance.
 - `.github/workflows/ci.yml` — ECR pipeline (4 GitHub Secrets: `AWS_ACCESS_KEY_ID`,

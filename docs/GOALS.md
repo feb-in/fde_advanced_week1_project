@@ -41,7 +41,7 @@ discipline, reproducibility, packaging, deployment, observability, governance.
 ### What we build
 - Environment: `uv` + `pyproject.toml`; all deps installed via `uv add`.
 - DVC initialized; raw CSV versioned (`dvc add data/raw/diabetic_data.csv`).
-- Repo structure matching `CLAUDE.md` section 3.
+- Repo structure matching the **Layout** section of `README.md`.
 
 ### Definition of done
 - [x] `uv run python -c "import pandas, sklearn, catboost, mlflow, shap"` passes.

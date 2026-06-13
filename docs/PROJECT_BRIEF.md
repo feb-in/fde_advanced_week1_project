@@ -42,9 +42,8 @@ rollback/retrain plan.
 
 ## Graded Traps & Caveats
 
-These are the traps that silently cost marks. The hard rules in `CLAUDE.md`
-enforce them; this section explains the *why*. Data facts verified against the
-actual dataset (101,766 raw rows).
+These are the traps that silently cost marks; this section explains the *why*
+behind each. Data facts verified against the actual dataset (101,766 raw rows).
 
 ### 1. `?` = missing, not a category
 Missing values in the source CSV are the literal string `?`, **not** blanks.
